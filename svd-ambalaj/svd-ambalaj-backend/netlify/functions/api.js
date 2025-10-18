@@ -44,6 +44,13 @@ const ensureDirectory = (dir) => {
     fsSync.mkdirSync(dir, { recursive: true });
     return dir;
   } catch (error) {
+    if (error.code === 'EEXIST') {
+      return dir;
+    }
+    if (['ENOENT', 'EACCES', 'EROFS'].includes(error.code)) {
+      console.warn('Failed to ensure directory, attempting fallback:', dir, error.code);
+      return null;
+    }
     console.error('Failed to ensure directory:', dir, error);
     return null;
   }
@@ -194,8 +201,10 @@ const readJson = async (filename) => {
 };
 
 const writeJson = async (filename, data) => {
-  const dir = ensureDirectory(runtimeDataDir) || ensureDirectory(path.join('/tmp', 'svd-data')) || runtimeDataDir;
-  const filePath = dir ? path.join(dir, filename) : path.join('/tmp', filename);
+  const preferredDir = ensureDirectory(runtimeDataDir);
+  const fallbackDir = preferredDir || ensureDirectory(path.join('/tmp', 'svd-data'));
+  const dir = fallbackDir || runtimeDataDir || path.join('/tmp', 'svd-data');
+  const filePath = path.join(dir, filename);
   try {
     await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
   } catch (error) {
@@ -1010,6 +1019,12 @@ router.get('/stats/overview', requireAdmin, async (req, res) => {
   }
 });
 
+const serverless = require('serverless-http');
+const app = express();
+app.use('/.netlify/functions/api', router);
+
 module.exports = router;
+module.exports.handler = serverless(app);
+
 
 
