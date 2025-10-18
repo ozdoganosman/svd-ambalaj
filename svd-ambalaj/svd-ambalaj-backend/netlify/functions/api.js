@@ -99,6 +99,7 @@ const ensureUploadsDir = () => {
   ensureDirectory(uploadsDir);
 };
 
+console.log('API_INIT', { packagedDataDir, runtimeDataDir, uploadsDir });
 const DEFAULT_DATA = {
   'products.json': { products: [] },
   'orders.json': { orders: [] },
@@ -1010,3 +1011,5 @@ router.get('/stats/overview', requireAdmin, async (req, res) => {
 });
 
 module.exports = router;
+
+
