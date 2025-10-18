@@ -8,29 +8,135 @@ const multer = require('multer');
 const router = express.Router();
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
-const dbDir = path.join(__dirname, '../../data');
-const uploadsDir = path.join(__dirname, '../../uploads');
+
+const resolveExistingPath = (candidates, fallback) => {
+  for (const candidate of candidates) {
+    if (!candidate) {
+      continue;
+    }
+    try {
+      if (fsSync.existsSync(candidate)) {
+        return candidate;
+      }
+    } catch (error) {
+      console.error('Path check failed:', candidate, error);
+    }
+  }
+  return fallback;
+};
+
+const packagedDataDir = resolveExistingPath(
+  [
+    path.join(__dirname, '../../data'),
+    path.join(__dirname, '../data'),
+    path.join(process.cwd(), 'svd-ambalaj/svd-ambalaj-backend/data'),
+    path.join(process.cwd(), 'svd-ambalaj-backend/data'),
+    path.join(process.cwd(), 'data'),
+  ],
+  path.join(__dirname, '../../data')
+);
+
+const ensureDirectory = (dir) => {
+  if (!dir) {
+    return null;
+  }
+  try {
+    fsSync.mkdirSync(dir, { recursive: true });
+    return dir;
+  } catch (error) {
+    console.error('Failed to ensure directory:', dir, error);
+    return null;
+  }
+};
+
+const runtimeDataDir = (() => {
+  if (process.env.NETLIFY) {
+    const tmpDir = ensureDirectory(path.join('/tmp', 'svd-data')) || path.join('/tmp', 'svd-data');
+    try {
+      if (packagedDataDir && fsSync.existsSync(packagedDataDir)) {
+        const files = fsSync.readdirSync(packagedDataDir);
+        for (const file of files) {
+          if (!file.endsWith('.json')) {
+            continue;
+          }
+          const source = path.join(packagedDataDir, file);
+          const target = path.join(tmpDir, file);
+          if (!fsSync.existsSync(target)) {
+            fsSync.copyFileSync(source, target);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to prepare runtime data directory:', error);
+    }
+    return tmpDir;
+  }
+  return packagedDataDir;
+})();
+
+const uploadsDir = (() => {
+  const candidates = process.env.NETLIFY
+    ? [path.join('/tmp', 'svd-uploads'), path.join(__dirname, '../../uploads')]
+    : [
+        path.join(__dirname, '../../uploads'),
+        path.join(process.cwd(), 'svd-ambalaj/svd-ambalaj-backend/uploads'),
+        path.join(process.cwd(), 'svd-ambalaj-backend/uploads'),
+      ];
+
+  for (const candidate of candidates) {
+    const ensured = ensureDirectory(candidate);
+    if (ensured) {
+      return ensured;
+    }
+  }
+
+  const fallback = path.join('/tmp', 'svd-uploads');
+  ensureDirectory(fallback);
+  return fallback;
+})();
+
+const ensureUploadsDir = () => {
+  ensureDirectory(uploadsDir);
+};
 
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 const ADMIN_SECRET = process.env.ADMIN_SECRET || 'svd-admin-secret';
 const ADMIN_TOKEN_EXPIRY_MINUTES = Number(process.env.ADMIN_TOKEN_EXPIRY_MINUTES || 120);
 
-const ensureUploadsDir = () => {
-  if (!fsSync.existsSync(uploadsDir)) {
-    fsSync.mkdirSync(uploadsDir, { recursive: true });
+const readJson = async (filename) => {
+  const runtimePath = path.join(runtimeDataDir, filename);
+  try {
+    const content = await fs.readFile(runtimePath, 'utf8');
+    return JSON.parse(content);
+  } catch (error) {
+    if (error.code === 'ENOENT' && packagedDataDir && packagedDataDir !== runtimeDataDir) {
+      try {
+        const packagedPath = path.join(packagedDataDir, filename);
+        const packagedContent = await fs.readFile(packagedPath, 'utf8');
+        const data = JSON.parse(packagedContent);
+        try {
+          await writeJson(filename, data);
+        } catch (seedError) {
+          console.warn(`Unable to seed runtime data for ${filename}:`, seedError);
+        }
+        return data;
+      } catch (fallbackError) {
+        console.error(`Failed to read packaged data for ${filename}:`, fallbackError);
+      }
+    }
+    throw error;
   }
 };
 
-const readJson = async (filename) => {
-  const filePath = path.join(dbDir, filename);
-  const content = await fs.readFile(filePath, 'utf8');
-  return JSON.parse(content);
-};
-
 const writeJson = async (filename, data) => {
-  const filePath = path.join(dbDir, filename);
-  await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
+  const filePath = path.join(runtimeDataDir, filename);
+  try {
+    await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
+  } catch (error) {
+    console.error(`Failed to write ${filename}:`, error);
+    throw error;
+  }
 };
 
 const readJsonWithFallback = async (filename, fallback) => {
@@ -38,10 +144,15 @@ const readJsonWithFallback = async (filename, fallback) => {
     return await readJson(filename);
   } catch (error) {
     if (error.code === 'ENOENT') {
-      await writeJson(filename, fallback);
+      try {
+        await writeJson(filename, fallback);
+      } catch (writeError) {
+        console.warn(`Failed to seed ${filename} with fallback:`, writeError);
+      }
       return fallback;
     }
-    throw error;
+    console.error(`Failed to read ${filename}:`, error);
+    return fallback;
   }
 };
 
