@@ -2,10 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { AddToCartButton } from "@/components/add-to-cart-button";
-
-const apiBase =
-  process.env.NEXT_PUBLIC_API_URL ??
-  "http://localhost:5000/.netlify/functions/api";
+import { resolveServerApiUrl } from "@/lib/server-api";
 
 type BulkTier = {
   minQty: number;
@@ -38,9 +35,12 @@ const formatCurrency = (value: number) =>
 
 async function getProduct(slug: string): Promise<Product | undefined> {
   try {
-    const response = await fetch(`${apiBase}/products/slug/${slug}`, {
-      next: { revalidate: 120 },
-    });
+    const response = await fetch(
+      resolveServerApiUrl(`/products/slug/${slug}`),
+      {
+        next: { revalidate: 120 },
+      }
+    );
     if (!response.ok) {
       return undefined;
     }
@@ -53,7 +53,7 @@ async function getProduct(slug: string): Promise<Product | undefined> {
 
 async function getCategories(): Promise<Category[]> {
   try {
-    const response = await fetch(`${apiBase}/categories`, {
+    const response = await fetch(resolveServerApiUrl("/categories"), {
       next: { revalidate: 300 },
     });
     if (!response.ok) {

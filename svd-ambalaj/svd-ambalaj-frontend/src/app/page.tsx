@@ -2,6 +2,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { SampleRequestForm } from "@/components/sample-request-form";
 import { AddToCartButton } from "@/components/add-to-cart-button";
+import {
+  resolveServerApiBase,
+  resolveServerApiOrigin,
+} from "@/lib/server-api";
 
 type BulkTier = {
   minQty: number;
@@ -40,11 +44,7 @@ const formatCurrency = (value: number) =>
     minimumFractionDigits: 2,
   }).format(value);
 
-async function getProducts(): Promise<Product[]> {
-  const apiBase =
-    process.env.NEXT_PUBLIC_API_URL ??
-    'http://localhost:5000/.netlify/functions/api';
-
+async function getProducts(apiBase: string): Promise<Product[]> {
   try {
     const response = await fetch(`${apiBase}/products`, {
       // cache on the server side for a minute to reduce file IO
@@ -64,11 +64,7 @@ async function getProducts(): Promise<Product[]> {
   }
 }
 
-async function getCategories(): Promise<Category[]> {
-  const apiBase =
-    process.env.NEXT_PUBLIC_API_URL ??
-    'http://localhost:5000/.netlify/functions/api';
-
+async function getCategories(apiBase: string): Promise<Category[]> {
   try {
     const response = await fetch(`${apiBase}/categories`, {
       next: { revalidate: 60 },
@@ -88,13 +84,8 @@ async function getCategories(): Promise<Category[]> {
 }
 
 export default async function Home() {
-  const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000/.netlify/functions/api';
-  let apiOrigin: string | null = null;
-  try {
-    apiOrigin = new URL(apiBase).origin;
-  } catch (error) {
-    console.error('Failed to parse API base URL', error);
-  }
+  const apiBase = resolveServerApiBase();
+  const apiOrigin = resolveServerApiOrigin();
 
   const resolveMediaPath = (path: string | undefined | null): string => {
     if (!path) {
@@ -110,8 +101,8 @@ export default async function Home() {
     resolveMediaPath(product.images?.[0] ?? product.image) || '/images/placeholders/product.jpg';
 
   const [products, categories, landingMediaPayload] = await Promise.all([
-    getProducts(),
-    getCategories(),
+    getProducts(apiBase),
+    getCategories(apiBase),
     fetch(`${apiBase}/landing-media`, { next: { revalidate: 60 } })
       .then(async (response) => {
         if (!response.ok) {

@@ -1,6 +1,4 @@
-const apiBase =
-  process.env.NEXT_PUBLIC_API_URL ??
-  "http://localhost:5000/.netlify/functions/api";
+import { resolveServerApiUrl } from "@/lib/server-api";
 
 type Category = {
   id: string;
@@ -11,7 +9,7 @@ type Category = {
 
 async function getCategories(): Promise<Category[]> {
   try {
-    const response = await fetch(`${apiBase}/categories`, {
+    const response = await fetch(resolveServerApiUrl("/categories"), {
       next: { revalidate: 120 },
     });
 

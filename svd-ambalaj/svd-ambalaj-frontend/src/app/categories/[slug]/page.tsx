@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AddToCartButton } from "@/components/add-to-cart-button";
-
-const apiBase =
-  process.env.NEXT_PUBLIC_API_URL ??
-  "http://localhost:5000/.netlify/functions/api";
+import { resolveServerApiUrl } from "@/lib/server-api";
 
 type Category = {
   id: string;
@@ -31,7 +28,7 @@ const formatCurrency = (value: number) =>
 
 async function getCategory(slug: string): Promise<Category | undefined> {
   try {
-    const response = await fetch(`${apiBase}/categories`, {
+    const response = await fetch(resolveServerApiUrl("/categories"), {
       next: { revalidate: 120 },
     });
     if (!response.ok) {
@@ -47,9 +44,12 @@ async function getCategory(slug: string): Promise<Category | undefined> {
 
 async function getCategoryProducts(slug: string): Promise<Product[]> {
   try {
-    const response = await fetch(`${apiBase}/categories/${slug}/products`, {
-      next: { revalidate: 120 },
-    });
+    const response = await fetch(
+      resolveServerApiUrl(`/categories/${slug}/products`),
+      {
+        next: { revalidate: 120 },
+      }
+    );
     if (!response.ok) {
       return [];
     }
