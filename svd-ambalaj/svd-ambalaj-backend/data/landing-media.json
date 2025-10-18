@@ -1,0 +1,24 @@
+{
+  "heroGallery": [
+    "/images/landing/24.png",
+    "/images/landing/25.png",
+    "/images/landing/27.png",
+    "/images/landing/28.png"
+  ],
+  "heroVideo": {
+    "src": "/uploads/1760815475590-315818037.mp4",
+    "poster": "/uploads/1760815551377-282677799.png"
+  },
+  "mediaHighlights": [
+    {
+      "title": "Tam otomatik dolum hattı",
+      "caption": "Saha görüntüleriniz burada yer alabilir.",
+      "image": "/images/landing/25.png"
+    },
+    {
+      "title": "asdasd",
+      "caption": "asdasd",
+      "image": "/uploads/1760813405578-422281035.jpeg"
+    }
+  ]
+}

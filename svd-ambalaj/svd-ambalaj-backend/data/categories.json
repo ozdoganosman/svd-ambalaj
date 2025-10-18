@@ -1,0 +1,67 @@
+{
+  "categories": [
+    {
+      "id": "mist-spreyler",
+      "name": "Mist Spreyler",
+      "slug": "mist-spreyler",
+      "description": "Kozmetik ve temizlik ürünleri için ince atomizasyon sağlayan mist sprey çözümleri.",
+      "image": "/images/categories/mist-spreyler.jpg"
+    },
+    {
+      "id": "sabun-dozaj",
+      "name": "Sabun Dozaj Pompaları",
+      "slug": "sabun-dozaj",
+      "description": "Sıvı sabun ve dezenfektanlar için üretilen dozaj pompaları.",
+      "image": "/images/categories/sabun-dozaj.jpg"
+    },
+    {
+      "id": "krem",
+      "name": "Krem Pompaları",
+      "slug": "krem",
+      "description": "Kozmetik ürünlerde maksimum hijyen sağlayan krem pompaları ve airless çözümler.",
+      "image": "/images/categories/krem.jpg"
+    },
+    {
+      "id": "damlaliklar",
+      "name": "Damlalıklar",
+      "slug": "damlaliklar",
+      "description": "Serum, vitamin ve aromaterapi ürünleri için cam damlalık şişeleri.",
+      "image": "/images/categories/damlaliklar.jpg"
+    },
+    {
+      "id": "oral-nasal",
+      "name": "Oral & Nasal Spreyler",
+      "slug": "oral-nasal",
+      "description": "Medikal sınıf oral ve nasal sprey pompaları.",
+      "image": "/images/categories/oral-nasal.jpg"
+    },
+    {
+      "id": "trigger-mini",
+      "name": "Triger Mini",
+      "slug": "trigger-mini",
+      "description": "Temizlik ve bakım ürünleri için ergonomik triger pompalar.",
+      "image": "/images/categories/trigger-mini.jpg"
+    },
+    {
+      "id": "kopuk",
+      "name": "Köpük Pompaları",
+      "slug": "kopuk",
+      "description": "Köpük sabun ve şampuanlar için mikser yapılı pompalar.",
+      "image": "/images/categories/kopuk.jpg"
+    },
+    {
+      "id": "kapak-diger",
+      "name": "Kapak & Diğer",
+      "slug": "kapak-diger",
+      "description": "Flip-top, disk-top ve özel tasarım kapak çözümleri.",
+      "image": "/images/categories/kapak-diger.jpg"
+    },
+    {
+      "id": "siseler",
+      "name": "Şişeler",
+      "slug": "siseler",
+      "description": "PET ve cam şişe seçenekleri.",
+      "image": "/images/categories/siseler.jpg"
+    }
+  ]
+}

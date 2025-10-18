@@ -1,0 +1,148 @@
+{
+  "products": [
+    {
+      "id": "mist-sprey-24-410",
+      "title": "Mist Sprey Pompa 24/410",
+      "slug": "mist-sprey-24-410",
+      "description": "Parfüm, tonik ve dezenfektan ürünleri için ince atomizasyon sağlayan yüksek kaliteli mist sprey pompası.",
+      "price": 3.4,
+      "bulkPricing": [
+        { "minQty": 1, "price": 3.4 },
+        { "minQty": 250, "price": 3.1 },
+        { "minQty": 1000, "price": 2.8 }
+      ],
+      "category": "mist-spreyler",
+      "images": ["/images/products/mist-sprey-24-410.jpg"],
+      "stock": 5000,
+      "createdAt": "2025-10-17T12:00:00Z"
+    },
+    {
+      "id": "sabun-dozaj-pompa",
+      "title": "Sabun Dozaj Pompası 28/400",
+      "slug": "sabun-dozaj-pompa",
+      "description": "Sıvı sabun ve dezenfektanlar için ideal, sızdırmazlık garantili sabun dozaj pompası.",
+      "price": 4.2,
+      "bulkPricing": [
+        { "minQty": 1, "price": 4.2 },
+        { "minQty": 200, "price": 3.8 },
+        { "minQty": 800, "price": 3.4 }
+      ],
+      "category": "sabun-dozaj",
+      "images": ["/images/products/sabun-dozaj-28-400.jpg"],
+      "stock": 4000,
+      "createdAt": "2025-10-17T12:10:00Z"
+    },
+    {
+      "id": "krem-pompa-airless",
+      "title": "Airless Krem Pompası 30ml",
+      "slug": "krem-pompa-airless",
+      "description": "Kozmetik ürünler için hava almayan yapı ile son kullanıma kadar hijyen sağlayan airless krem pompası.",
+      "price": 6.9,
+      "bulkPricing": [
+        { "minQty": 1, "price": 6.9 },
+        { "minQty": 150, "price": 6.2 },
+        { "minQty": 600, "price": 5.5 }
+      ],
+      "category": "krem",
+      "images": ["/images/products/krem-pompa-airless.jpg"],
+      "stock": 2500,
+      "createdAt": "2025-10-17T12:20:00Z"
+    },
+    {
+      "id": "damlalik-30ml",
+      "title": "Cam Damlalık 30ml",
+      "slug": "damlalik-30ml",
+      "description": "Vitamin, serum ve aromaterapi yağları için hassas dozlamaya uygun cam damlalık şişe.",
+      "price": 5.3,
+      "bulkPricing": [
+        { "minQty": 1, "price": 5.3 },
+        { "minQty": 200, "price": 4.9 },
+        { "minQty": 1000, "price": 4.4 }
+      ],
+      "category": "damlaliklar",
+      "images": ["/images/products/damlalik-30ml.jpg"],
+      "stock": 3200,
+      "createdAt": "2025-10-17T12:30:00Z"
+    },
+    {
+      "id": "oral-nasal-sprey",
+      "title": "Oral & Nasal Sprey Pompası",
+      "slug": "oral-nasal-sprey",
+      "description": "Medikal sınıf malzemeden üretilmiş, oral ve burun spreyleri için uygun pompa.",
+      "price": 7.1,
+      "bulkPricing": [
+        { "minQty": 1, "price": 7.1 },
+        { "minQty": 300, "price": 6.6 },
+        { "minQty": 1200, "price": 6.0 }
+      ],
+      "category": "oral-nasal",
+      "images": ["/images/products/oral-nasal-sprey.jpg"],
+      "stock": 2800,
+      "createdAt": "2025-10-17T12:40:00Z"
+    },
+    {
+      "id": "trigger-mini-28-410",
+      "title": "Triger Mini Tetkik Pompası 28/410",
+      "slug": "trigger-mini-28-410",
+      "description": "Temizlik ve bakım ürünlerinde ergonomik kullanım sağlayan mini triger tetik pompası.",
+      "price": 5.8,
+      "bulkPricing": [
+        { "minQty": 1, "price": 5.8 },
+        { "minQty": 250, "price": 5.2 },
+        { "minQty": 900, "price": 4.7 }
+      ],
+      "category": "trigger-mini",
+      "images": ["/images/products/trigger-mini-28-410.jpg"],
+      "stock": 3500,
+      "createdAt": "2025-10-17T12:50:00Z"
+    },
+    {
+      "id": "kopuk-dispencer",
+      "title": "Köpük Dispenser Pompası",
+      "slug": "kopuk-dispencer",
+      "description": "Köpük sabun ve şampuanlar için optimize edilmiş mikser yapılı dispenser pompası.",
+      "price": 6.4,
+      "bulkPricing": [
+        { "minQty": 1, "price": 6.4 },
+        { "minQty": 250, "price": 5.9 },
+        { "minQty": 1000, "price": 5.3 }
+      ],
+      "category": "kopuk",
+      "images": ["/images/products/kopuk-dispenser.jpg"],
+      "stock": 3100,
+      "createdAt": "2025-10-17T13:00:00Z"
+    },
+    {
+      "id": "kapak-fliptop-24",
+      "title": "Flip-Top Kapak 24/410",
+      "slug": "kapak-fliptop-24",
+      "description": "Şampuan, losyon ve temizleyiciler için popüler flip-top kapak modeli.",
+      "price": 1.9,
+      "bulkPricing": [
+        { "minQty": 1, "price": 1.9 },
+        { "minQty": 500, "price": 1.6 },
+        { "minQty": 2000, "price": 1.3 }
+      ],
+      "category": "kapak-diger",
+      "images": ["/images/products/kapak-fliptop-24.jpg"],
+      "stock": 8000,
+      "createdAt": "2025-10-17T13:10:00Z"
+    },
+    {
+      "id": "pet-sise-500ml",
+      "title": "PET Şişe 500ml",
+      "slug": "pet-sise-500ml",
+      "description": "Gıda dışı sıvılar için uygun, yüksek berraklığa sahip 500ml PET şişe.",
+      "price": 2.7,
+      "bulkPricing": [
+        { "minQty": 1, "price": 2.7 },
+        { "minQty": 600, "price": 2.3 },
+        { "minQty": 2500, "price": 1.9 }
+      ],
+      "category": "siseler",
+      "images": ["/images/products/pet-sise-500ml.jpg"],
+      "stock": 10000,
+      "createdAt": "2025-10-17T13:20:00Z"
+    }
+  ]
+}

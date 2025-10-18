@@ -1,0 +1,58 @@
+{
+  "media": [
+    {
+      "id": "1760813241309-1760813241279-947080013.png",
+      "filename": "1760813241279-947080013.png",
+      "originalName": "24.png",
+      "size": 2180568,
+      "mimeType": "image/png",
+      "url": "/uploads/1760813241279-947080013.png",
+      "createdAt": "2025-10-18T18:47:21.310Z"
+    },
+    {
+      "id": "1760813405580-1760813405578-422281035.jpeg",
+      "filename": "1760813405578-422281035.jpeg",
+      "originalName": "24 MS T G.jpeg",
+      "size": 20162,
+      "mimeType": "image/jpeg",
+      "url": "/uploads/1760813405578-422281035.jpeg",
+      "createdAt": "2025-10-18T18:50:05.580Z"
+    },
+    {
+      "id": "1760814590520-1760814590517-425730466.jpeg",
+      "filename": "1760814590517-425730466.jpeg",
+      "originalName": "24 MS T G.jpeg",
+      "size": 20162,
+      "mimeType": "image/jpeg",
+      "url": "/uploads/1760814590517-425730466.jpeg",
+      "createdAt": "2025-10-18T19:09:50.520Z"
+    },
+    {
+      "id": "1760814631980-1760814631960-803570660.mp4",
+      "filename": "1760814631960-803570660.mp4",
+      "originalName": "fabrika.mp4",
+      "size": 1380240,
+      "mimeType": "video/mp4",
+      "url": "/uploads/1760814631960-803570660.mp4",
+      "createdAt": "2025-10-18T19:10:31.980Z"
+    },
+    {
+      "id": "1760815475608-1760815475590-315818037.mp4",
+      "filename": "1760815475590-315818037.mp4",
+      "originalName": "fabrika.mp4",
+      "size": 1380240,
+      "mimeType": "video/mp4",
+      "url": "/uploads/1760815475590-315818037.mp4",
+      "createdAt": "2025-10-18T19:24:35.608Z"
+    },
+    {
+      "id": "1760815551417-1760815551377-282677799.png",
+      "filename": "1760815551377-282677799.png",
+      "originalName": "27.png",
+      "size": 2367973,
+      "mimeType": "image/png",
+      "url": "/uploads/1760815551377-282677799.png",
+      "createdAt": "2025-10-18T19:25:51.417Z"
+    }
+  ]
+}

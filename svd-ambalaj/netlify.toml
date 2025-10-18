@@ -1,0 +1,17 @@
+[build]
+  base = "svd-ambalaj-frontend"
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NEXT_PUBLIC_API_URL = "/.netlify/functions/api"
+
+[functions]
+  directory = "../svd-ambalaj-backend/netlify/functions"
+  node_bundler = "esbuild"
+  included_files = [
+    "../svd-ambalaj-backend/data/**"
+  ]
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

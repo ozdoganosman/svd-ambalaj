@@ -1,0 +1,39 @@
+{
+  "orders": [
+    {
+      "customer": {
+        "name": "Osman Özdoğan",
+        "company": "Svd ambalaj plastik oto inş. san. tic. ltd. şti",
+        "email": "osman_ose@hotmail.com",
+        "phone": "05076078906",
+        "taxNumber": "12222222222222222222222222",
+        "address": "Murat Çeşme Mah. Sultan Murat Cad. (no:17) Köroğlu İş Merkezi İç kapı no:1",
+        "city": "BÜYÜKÇEKMECE",
+        "notes": ""
+      },
+      "items": [
+        {
+          "id": "oral-nasal-sprey",
+          "title": "Oral & Nasal Sprey Pompası",
+          "quantity": 1,
+          "price": 7.1,
+          "subtotal": 7.1
+        },
+        {
+          "id": "sabun-dozaj-pompa",
+          "title": "Sabun Dozaj Pompası 28/400",
+          "quantity": 1,
+          "price": 4.2,
+          "subtotal": 4.2
+        }
+      ],
+      "totals": {
+        "subtotal": 11.3,
+        "currency": "TRY"
+      },
+      "id": "order-1760755074431",
+      "status": "pending",
+      "createdAt": "2025-10-18T02:37:54.431Z"
+    }
+  ]
+}
