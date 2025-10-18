@@ -1,5 +1,5 @@
 [build]
-  base = "svd-ambalaj-frontend"
+  base = "svd-ambalaj/svd-ambalaj-frontend"
   command = "npm run build"
   publish = ".next"
 
