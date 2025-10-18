@@ -99,38 +99,102 @@ const ensureUploadsDir = () => {
   ensureDirectory(uploadsDir);
 };
 
+const DEFAULT_DATA = {
+  'products.json': { products: [] },
+  'orders.json': { orders: [] },
+  'categories.json': { categories: [] },
+  'customers.json': { customers: [] },
+  'samples.json': { samples: [] },
+  'landing-media.json': {
+    landingMedia: {
+      heroGallery: [],
+      heroVideo: { src: '', poster: '' },
+      mediaHighlights: [],
+    },
+  },
+  'media.json': { media: [] },
+};
+
+const cloneDefault = (filename) => {
+  const value = DEFAULT_DATA[filename];
+  return value ? JSON.parse(JSON.stringify(value)) : null;
+};
+
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 const ADMIN_SECRET = process.env.ADMIN_SECRET || 'svd-admin-secret';
 const ADMIN_TOKEN_EXPIRY_MINUTES = Number(process.env.ADMIN_TOKEN_EXPIRY_MINUTES || 120);
 
 const readJson = async (filename) => {
-  const runtimePath = path.join(runtimeDataDir, filename);
+  const runtimePath = runtimeDataDir ? path.join(runtimeDataDir, filename) : null;
+  const packagedPath =
+    packagedDataDir && packagedDataDir !== runtimeDataDir
+      ? path.join(packagedDataDir, filename)
+      : null;
+
   try {
-    const content = await fs.readFile(runtimePath, 'utf8');
-    return JSON.parse(content);
+    if (runtimePath) {
+      const content = await fs.readFile(runtimePath, 'utf8');
+      return JSON.parse(content);
+    }
   } catch (error) {
     if (error.code === 'ENOENT' && packagedDataDir && packagedDataDir !== runtimeDataDir) {
       try {
-        const packagedPath = path.join(packagedDataDir, filename);
-        const packagedContent = await fs.readFile(packagedPath, 'utf8');
-        const data = JSON.parse(packagedContent);
-        try {
-          await writeJson(filename, data);
-        } catch (seedError) {
-          console.warn(`Unable to seed runtime data for ${filename}:`, seedError);
+        if (packagedPath) {
+          const packagedContent = await fs.readFile(packagedPath, 'utf8');
+          const data = JSON.parse(packagedContent);
+          try {
+            await writeJson(filename, data);
+          } catch (seedError) {
+            console.warn(`Unable to seed runtime data for ${filename}:`, seedError);
+          }
+          return data;
         }
-        return data;
       } catch (fallbackError) {
         console.error(`Failed to read packaged data for ${filename}:`, fallbackError);
       }
     }
+    const fallback = cloneDefault(filename);
+    if (fallback) {
+      try {
+        await writeJson(filename, fallback);
+      } catch (seedError) {
+        console.warn(`Unable to write default data for ${filename}:`, seedError);
+      }
+      return fallback;
+    }
     throw error;
   }
+
+  if (runtimePath) {
+    try {
+      const content = await fs.readFile(runtimePath, 'utf8');
+      return JSON.parse(content);
+    } catch (error) {
+      console.error(`Failed to read runtime data for ${filename}:`, error);
+    }
+  }
+
+  if (packagedPath) {
+    try {
+      const packagedContent = await fs.readFile(packagedPath, 'utf8');
+      return JSON.parse(packagedContent);
+    } catch (error) {
+      console.error(`Failed to read packaged data for ${filename}:`, error);
+    }
+  }
+
+  const fallback = cloneDefault(filename);
+  if (fallback) {
+    return fallback;
+  }
+
+  throw new Error(`Unable to load data file: ${filename}`);
 };
 
 const writeJson = async (filename, data) => {
-  const filePath = path.join(runtimeDataDir, filename);
+  const dir = ensureDirectory(runtimeDataDir) || ensureDirectory(path.join('/tmp', 'svd-data')) || runtimeDataDir;
+  const filePath = dir ? path.join(dir, filename) : path.join('/tmp', filename);
   try {
     await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
   } catch (error) {
