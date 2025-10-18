@@ -1,4 +1,5 @@
 const express = require('express');
+const http = require('http');
 const fs = require('fs').promises;
 const fsSync = require('fs');
 const path = require('path');
@@ -127,6 +128,9 @@ const cloneDefault = (filename) => {
   const value = DEFAULT_DATA[filename];
   return value ? JSON.parse(JSON.stringify(value)) : null;
 };
+
+const handlerApp = express();
+handlerApp.use('/.netlify/functions/api', router);
 
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
@@ -1019,12 +1023,78 @@ router.get('/stats/overview', requireAdmin, async (req, res) => {
   }
 });
 
-const serverless = require('serverless-http');
-const app = express();
-app.use('/.netlify/functions/api', router);
-
 module.exports = router;
-module.exports.handler = serverless(app);
+
+const buildQueryString = (params = {}) => {
+  const entries = Object.entries(params).filter(([, value]) => value !== undefined && value !== null);
+  if (entries.length === 0) {
+    return '';
+  }
+  return new URLSearchParams(entries).toString();
+};
+
+const getPathWithQuery = (event) => {
+  const rawPath = event.rawPath || event.path || '/';
+  const rawQuery = event.rawQuery || '';
+  const fallbackQuery = buildQueryString(event.queryStringParameters);
+  const query = rawQuery || fallbackQuery;
+  const pathWithQuery = rawPath + (query ? `?${query}` : '');
+  return pathWithQuery;
+};
+
+module.exports.handler = async (event, context) => {
+  return new Promise((resolve, reject) => {
+    const server = handlerApp.listen(0, '127.0.0.1', () => {
+      const { port } = server.address();
+      const pathWithQuery = getPathWithQuery(event);
+
+      const options = {
+        hostname: '127.0.0.1',
+        port,
+        path: pathWithQuery,
+        method: event.httpMethod || 'GET',
+        headers: {
+          ...event.headers,
+          host: `127.0.0.1:${port}`,
+        },
+      };
+
+      const req = http.request(options, (res) => {
+        const chunks = [];
+        res.on('data', (chunk) => chunks.push(chunk));
+        res.on('end', () => {
+          const bodyBuffer = Buffer.concat(chunks);
+          const bodyString = bodyBuffer.toString('utf8');
+
+          const headers = { ...res.headers };
+          delete headers.connection;
+          delete headers['transfer-encoding'];
+
+          server.close(() => {
+            resolve({
+              statusCode: res.statusCode || 200,
+              headers,
+              body: bodyString,
+            });
+          });
+        });
+      });
+
+      req.on('error', (error) => {
+        server.close(() => reject(error));
+      });
+
+      if (event.body) {
+        const bodyData = event.isBase64Encoded
+          ? Buffer.from(event.body, 'base64')
+          : event.body;
+        req.write(bodyData);
+      }
+
+      req.end();
+    });
+  });
+};
 
 
 
