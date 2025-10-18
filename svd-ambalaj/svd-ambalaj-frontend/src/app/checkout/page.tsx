@@ -7,7 +7,7 @@ import { useCart } from "@/context/CartContext";
 
 const apiBase =
   process.env.NEXT_PUBLIC_API_URL ??
-  "http://localhost:5000/.netlify/functions/api";
+  "/.netlify/functions/api";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("tr-TR", {

@@ -4,7 +4,7 @@ import { useState } from "react";
 
 const apiBase =
   process.env.NEXT_PUBLIC_API_URL ??
-  "http://localhost:5000/.netlify/functions/api";
+  "/.netlify/functions/api";
 
 export type SampleRequestFormProps = {
   categories: { id: string; name: string }[];

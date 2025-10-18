@@ -37,7 +37,7 @@ const resolveApiBase = () => {
     return process.env.NEXT_PUBLIC_ADMIN_API_BASE;
   }
 
-  return "http://localhost:5000/.netlify/functions/api";
+  return "/.netlify/functions/api";
 };
 
 export function getAdminApiOrigin(): string {
