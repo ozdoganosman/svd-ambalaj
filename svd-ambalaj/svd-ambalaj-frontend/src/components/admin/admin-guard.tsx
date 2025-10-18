@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiFetch, registerUnauthorizedHandler, setAdminAuthToken } from "@/lib/admin-api";
 
+const DISABLE_ADMIN_AUTH = true;
+
 const TOKEN_STORAGE_KEY = "svd_admin_token";
 
 type AdminGuardProps = {
@@ -16,7 +18,7 @@ type AuthState = {
   error: string | null;
 };
 
-export function AdminGuard({ children }: AdminGuardProps) {
+function ProtectedAdminGuard({ children }: AdminGuardProps) {
   const [state, setState] = useState<AuthState>({
     loading: true,
     authorized: false,
@@ -145,3 +147,12 @@ export function AdminGuard({ children }: AdminGuardProps) {
 
   return <>{children}</>;
 }
+
+export function AdminGuard({ children }: AdminGuardProps) {
+  if (DISABLE_ADMIN_AUTH) {
+    return <>{children}</>;
+  }
+
+  return <ProtectedAdminGuard>{children}</ProtectedAdminGuard>;
+}
+
