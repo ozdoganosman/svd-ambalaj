@@ -14,6 +14,8 @@ type Product = {
   description: string;
   price: number;
   bulkPricing?: BulkTier[];
+  images?: string[];
+  image?: string;
 };
 
 type Category = {
@@ -102,6 +104,9 @@ export default async function Home() {
     }
     return path;
   };
+
+  const resolveProductImage = (product: Product): string =>
+    resolveMediaPath(product.images?.[0] ?? product.image) || '/images/placeholders/product.jpg';
 
   const [products, categories, landingMediaPayload] = await Promise.all([
     getProducts(),
@@ -630,7 +635,7 @@ export default async function Home() {
               >
                 <div className="relative h-48 w-full overflow-hidden bg-slate-100">
                   <Image
-                    src={product.images?.[0] ?? "/images/placeholders/product.jpg"}
+                    src={resolveProductImage(product)}
                     alt={product.title}
                     fill
                     className="object-cover transition duration-500 hover:scale-110"
