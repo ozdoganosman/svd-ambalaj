@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 
 const apiBase =
@@ -103,9 +105,9 @@ export default async function ProductDetailPage({
           <h1 className="text-3xl font-bold">Ürün bulunamadı</h1>
           <p className="mt-4 text-slate-600">
             Aradığınız ürün kaldırılmış olabilir. Tüm ürünlerimizi görmek için
-            <a href="/products" className="font-semibold text-amber-600 hover:underline">
+            <Link href="/products" className="font-semibold text-amber-600 hover:underline">
               {" "}ürün listesine geri dönün.
-            </a>
+            </Link>
           </p>
         </div>
       </main>
@@ -129,10 +131,12 @@ export default async function ProductDetailPage({
                   key={`${product.id}-image-${index}`}
                   className="relative h-64 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100"
                 >
-                  <img
+                  <Image
                     src={image}
                     alt={`${product.title} görsel ${index + 1}`}
-                    className="h-full w-full object-cover"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 1024px) 50vw, 100vw"
                   />
                 </div>
               ))}
@@ -192,9 +196,9 @@ export default async function ProductDetailPage({
                 <h2 className="text-lg font-semibold text-slate-900">Numune ve Özelleştirme</h2>
                 <p className="mt-2 text-sm text-slate-600">
                   Bu ürün için renk, dip boru uzunluğu ve baskı seçeneklerinde özelleştirme yapılabilir. Numune talep etmek için
-                  <a href="/#sample" className="font-semibold text-amber-600 hover:underline">
+                  <Link href="/#sample" className="font-semibold text-amber-600 hover:underline">
                     {" "}numune formunu doldurun
-                  </a>
+                  </Link>
                   . Müşteri temsilcilerimiz 24 saat içinde dönüş yapacaktır.
                 </p>
               </section>
@@ -245,12 +249,12 @@ export default async function ProductDetailPage({
             >
               Teklif iste
             </a>
-            <a
+            <Link
               href="/#sample"
               className="inline-flex items-center justify-center rounded-full border border-transparent bg-white px-6 py-3 text-sm font-semibold text-amber-600 shadow-sm shadow-amber-200/50 transition hover:border-amber-400 hover:bg-amber-50"
             >
               Numune talep et
-            </a>
+            </Link>
           </aside>
         </div>
       </div>

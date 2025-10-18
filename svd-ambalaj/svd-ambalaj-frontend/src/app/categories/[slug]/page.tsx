@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 
 const apiBase =
@@ -95,11 +96,10 @@ export default async function CategoryDetailPage({
         <div className="mx-auto max-w-4xl px-6 text-center">
           <h1 className="text-3xl font-bold">Kategori bulunamadı</h1>
           <p className="mt-4 text-slate-600">
-            Aradığınız kategori kaldırılmış olabilir. Diğer ürün kategorilerimizi görüntülemek için
-            <a href="/categories" className="font-semibold text-amber-600 hover:underline">
-              {" "}
+            Aradığınız kategori kaldırılmış olabilir. Diğer ürün kategorilerimizi görüntülemek için{" "}
+            <Link href="/categories" className="font-semibold text-amber-600 hover:underline">
               tıklayın.
-            </a>
+            </Link>
           </p>
         </div>
       </main>
@@ -170,12 +170,12 @@ export default async function CategoryDetailPage({
                     bulkPricing: product.bulkPricing,
                   }}
                 />
-                <a
+                <Link
                   href={`/products/${product.slug}`}
                   className="inline-flex items-center justify-center rounded-full border border-amber-500 px-5 py-2 text-sm font-semibold text-amber-600 transition hover:bg-amber-500 hover:text-white"
                 >
                   Ürün Detayı
-                </a>
+                </Link>
               </div>
             </article>
           ))}

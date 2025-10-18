@@ -1,5 +1,6 @@
 'use client';
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { AdminMedia, deleteMediaItem, fetchMediaList, resolveMediaUrl, uploadMediaFile } from "@/lib/admin-api";
 
@@ -148,9 +149,15 @@ export default function AdminMediaPage() {
               const fileUrl = resolveMediaUrl(item.url);
               return (
                 <div key={item.id} className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
-                  <div className="aspect-video w-full overflow-hidden rounded-lg border border-slate-200 bg-white">
+                  <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-slate-200 bg-white">
                     {isImage ? (
-                      <img src={fileUrl} alt={item.originalName} className="h-full w-full object-cover" />
+                      <Image
+                        src={fileUrl}
+                        alt={item.originalName}
+                        fill
+                        className="object-cover"
+                        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                      />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-sm text-slate-500">
                         {item.mimeType}

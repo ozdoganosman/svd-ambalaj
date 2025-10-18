@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { SampleRequestForm } from "@/components/sample-request-form";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 
@@ -472,16 +473,16 @@ export default async function Home() {
                 Mist sprey, köpük pompası, tetik sprey, sabun dozaj pompaları ve PET şişe çözümlerimizle yüksek hacimli dolum hatlarınızı destekliyoruz. Her kategori stoklu çalışır, ihracata hazırdır.
               </p>
             </div>
-            <a
+            <Link
               href="/categories"
               className="inline-flex items-center rounded-full border border-slate-300 px-5 py-2 text-sm font-semibold text-slate-700 transition hover:border-amber-400 hover:text-amber-600"
             >
               Tüm Kategorileri Gör
-            </a>
+            </Link>
           </div>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {categories.map((category) => (
-              <a
+              <Link
                 key={category.id}
                 href={`/categories/${category.slug}`}
                 className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:border-amber-400 hover:shadow-lg"
@@ -506,7 +507,7 @@ export default async function Home() {
                     İncele →
                   </span>
                 </div>
-              </a>
+              </Link>
             ))}
           </div>
         </div>
@@ -684,12 +685,12 @@ export default async function Home() {
                         bulkPricing: product.bulkPricing,
                       }}
                     />
-                    <a
+                    <Link
                       href={`/products/${product.slug}`}
                       className="inline-flex items-center justify-center rounded-full border border-amber-500 px-5 py-2 text-sm font-semibold text-amber-600 transition hover:bg-amber-500 hover:text-white"
                     >
                       Detayları Gör
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </article>
@@ -734,12 +735,12 @@ export default async function Home() {
             Toplu siparişlerinizi dakikalar içinde yönetin, ihtiyaç duyduğunuz tüm sprey ve pompa çözümlerini tek merkezden temin edin. SVD Ambalaj ile üretim planlarınızı aksatmadan sürdürebilirsiniz.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <a
+            <Link
               href="/checkout"
               className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-amber-600 shadow-lg shadow-amber-600/30 transition hover:bg-amber-100"
             >
               Teklif Oluştur
-            </a>
+            </Link>
             <a
               href="mailto:info@svdambalaj.com"
               className="rounded-full border border-white px-6 py-3 text-sm font-semibold text-white transition hover:bg-amber-400/20"
