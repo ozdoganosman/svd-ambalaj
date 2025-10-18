@@ -6,6 +6,8 @@ const crypto = require('crypto');
 const multer = require('multer');
 
 const router = express.Router();
+router.use(express.json());
+router.use(express.urlencoded({ extended: true }));
 const dbDir = path.join(__dirname, '../../data');
 const uploadsDir = path.join(__dirname, '../../uploads');
 
@@ -164,11 +166,21 @@ const sanitizeLandingMedia = (input, fallback = defaultLandingMedia) => {
   };
 };
 
+const encodeBase64Url = (input) =>
+  Buffer.from(input).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+const decodeBase64Url = (input) => {
+  const padded = input.replace(/-/g, '+').replace(/_/g, '/');
+  const paddingLength = (4 - (padded.length % 4)) % 4;
+  const paddedInput = `${padded}${'='.repeat(paddingLength)}`;
+  return Buffer.from(paddedInput, 'base64').toString('utf8');
+};
+
 const createAdminToken = (username) => {
   const issuedAt = Date.now();
   const expiresAt = issuedAt + ADMIN_TOKEN_EXPIRY_MINUTES * 60 * 1000;
   const payload = { username, issuedAt, expiresAt };
-  const base = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const base = encodeBase64Url(JSON.stringify(payload));
   const signature = crypto.createHmac('sha256', ADMIN_SECRET).update(base).digest('hex');
   return { token: `${base}.${signature}`, expiresAt };
 };
@@ -200,7 +212,7 @@ const verifyAdminToken = (token) => {
 
   let payload;
   try {
-    payload = JSON.parse(Buffer.from(base, 'base64url').toString('utf8'));
+    payload = JSON.parse(decodeBase64Url(base));
   } catch (error) {
     console.error('Token parse error:', error);
     return null;
