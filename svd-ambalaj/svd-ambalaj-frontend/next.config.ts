@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
         port: "5000",
         pathname: "/uploads/**",
       },
+      {
+        protocol: "https",
+        hostname: "svdambalaj.netlify.app",
+        pathname: "/uploads/**",
+      },
     ],
   },
   turbopack: {
