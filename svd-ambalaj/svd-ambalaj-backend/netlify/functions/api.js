@@ -10,6 +10,12 @@ const router = express.Router();
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
 
+const isNetlifyRuntime = Boolean(
+  process.env.NETLIFY ||
+  process.env.AWS_LAMBDA_FUNCTION_NAME ||
+  process.env.LAMBDA_TASK_ROOT
+);
+
 const resolveExistingPath = (candidates, fallback) => {
   for (const candidate of candidates) {
     if (!candidate) {
@@ -58,7 +64,7 @@ const ensureDirectory = (dir) => {
 };
 
 const runtimeDataDir = (() => {
-  if (process.env.NETLIFY) {
+  if (isNetlifyRuntime) {
     const tmpDir = ensureDirectory(path.join('/tmp', 'svd-data')) || path.join('/tmp', 'svd-data');
     try {
       if (packagedDataDir && fsSync.existsSync(packagedDataDir)) {
@@ -83,7 +89,7 @@ const runtimeDataDir = (() => {
 })();
 
 const uploadsDir = (() => {
-  const candidates = process.env.NETLIFY
+  const candidates = isNetlifyRuntime
     ? [path.join('/tmp', 'svd-uploads'), path.join(__dirname, '../../uploads')]
     : [
         path.join(__dirname, '../../uploads'),
@@ -205,9 +211,10 @@ const readJson = async (filename) => {
 };
 
 const writeJson = async (filename, data) => {
-  const preferredDir = ensureDirectory(runtimeDataDir);
+  const baseDir = isNetlifyRuntime ? path.join('/tmp', 'svd-data') : runtimeDataDir;
+  const preferredDir = ensureDirectory(baseDir);
   const fallbackDir = preferredDir || ensureDirectory(path.join('/tmp', 'svd-data'));
-  const dir = fallbackDir || runtimeDataDir || path.join('/tmp', 'svd-data');
+  const dir = fallbackDir || baseDir || runtimeDataDir || path.join('/tmp', 'svd-data');
   const filePath = path.join(dir, filename);
   try {
     await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
