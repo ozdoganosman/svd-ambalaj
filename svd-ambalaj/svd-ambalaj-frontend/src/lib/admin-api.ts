@@ -33,8 +33,32 @@ async function parseResponse<T>(response: Response, parseJson = true): Promise<T
 }
 
 const resolveApiBase = () => {
-  if (process.env.NEXT_PUBLIC_ADMIN_API_BASE) {
-    return process.env.NEXT_PUBLIC_ADMIN_API_BASE;
+  const explicit = process.env.NEXT_PUBLIC_ADMIN_API_BASE;
+  if (explicit) {
+    return explicit;
+  }
+
+  if (typeof window !== "undefined") {
+    return `${window.location.origin}/.netlify/functions/api`;
+  }
+
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.SITE_URL ||
+    process.env.URL ||
+    process.env.DEPLOY_PRIME_URL ||
+    process.env.DEPLOY_URL;
+
+  if (siteUrl) {
+    const normalized = siteUrl.startsWith("http")
+      ? siteUrl
+      : `https://${siteUrl}`;
+    try {
+      const url = new URL(normalized);
+      return `${url.origin}/.netlify/functions/api`;
+    } catch (error) {
+      console.warn("Failed to normalise site URL", siteUrl, error);
+    }
   }
 
   return "/.netlify/functions/api";
@@ -45,6 +69,9 @@ export function getAdminApiOrigin(): string {
     const url = new URL(resolveApiBase());
     return url.origin;
   } catch (error) {
+    if (typeof window !== "undefined") {
+      return window.location.origin;
+    }
     console.error("Unable to parse admin API base", error);
     const matches = resolveApiBase().match(/^(https?:\/\/[^/]+)/i);
     return matches ? matches[1] : "";
