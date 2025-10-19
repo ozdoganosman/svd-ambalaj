@@ -79,12 +79,12 @@ set price = excluded.price;
 -- Media ------------------------------------------------------------------------
 insert into media (id, storage_key, filename, original_name, mime_type, size_bytes, url, created_at)
 values
-  ('1760813241309-1760813241279-947080013.png', '1760813241279-947080013.png', '1760813241279-947080013.png', '24.png', 'image/png', 2180568, '/uploads/1760813241279-947080013.png', '2025-10-18T18:47:21.310Z'),
-  ('1760813405580-1760813405578-422281035.jpeg', '1760813405578-422281035.jpeg', '1760813405578-422281035.jpeg', '24 MS T G.jpeg', 'image/jpeg', 20162, '/uploads/1760813405578-422281035.jpeg', '2025-10-18T18:50:05.580Z'),
-  ('1760814590520-1760814590517-425730466.jpeg', '1760814590517-425730466.jpeg', '1760814590517-425730466.jpeg', '24 MS T G.jpeg', 'image/jpeg', 20162, '/uploads/1760814590517-425730466.jpeg', '2025-10-18T19:09:50.520Z'),
-  ('1760814631980-1760814631960-803570660.mp4', '1760814631960-803570660.mp4', '1760814631960-803570660.mp4', 'fabrika.mp4', 'video/mp4', 1380240, '/uploads/1760814631960-803570660.mp4', '2025-10-18T19:10:31.980Z'),
-  ('1760815475608-1760815475590-315818037.mp4', '1760815475590-315818037.mp4', '1760815475590-315818037.mp4', 'fabrika.mp4', 'video/mp4', 1380240, '/uploads/1760815475590-315818037.mp4', '2025-10-18T19:24:35.608Z'),
-  ('1760815551417-1760815551377-282677799.png', '1760815551377-282677799.png', '1760815551377-282677799.png', '27.png', 'image/png', 2367973, '/uploads/1760815551377-282677799.png', '2025-10-18T19:25:51.417Z')
+  ('1760813241309-1760813241279-947080013.png', '1760813241279-947080013.png', '1760813241279-947080013.png', '24.png', 'image/png', 2180568, 'https://svdambalaj.netlify.app/.netlify/blobs/site/uploads/1760813241279-947080013.png', '2025-10-18T18:47:21.310Z'),
+  ('1760813405580-1760813405578-422281035.jpeg', '1760813405578-422281035.jpeg', '1760813405578-422281035.jpeg', '24 MS T G.jpeg', 'image/jpeg', 20162, 'https://svdambalaj.netlify.app/.netlify/blobs/site/uploads/1760813405578-422281035.jpeg', '2025-10-18T18:50:05.580Z'),
+  ('1760814590520-1760814590517-425730466.jpeg', '1760814590517-425730466.jpeg', '1760814590517-425730466.jpeg', '24 MS T G.jpeg', 'image/jpeg', 20162, 'https://svdambalaj.netlify.app/.netlify/blobs/site/uploads/1760814590517-425730466.jpeg', '2025-10-18T19:09:50.520Z'),
+  ('1760814631980-1760814631960-803570660.mp4', '1760814631960-803570660.mp4', '1760814631960-803570660.mp4', 'fabrika.mp4', 'video/mp4', 1380240, 'https://svdambalaj.netlify.app/.netlify/blobs/site/uploads/1760814631960-803570660.mp4', '2025-10-18T19:10:31.980Z'),
+  ('1760815475608-1760815475590-315818037.mp4', '1760815475590-315818037.mp4', '1760815475590-315818037.mp4', 'fabrika.mp4', 'video/mp4', 1380240, 'https://svdambalaj.netlify.app/.netlify/blobs/site/uploads/1760815475590-315818037.mp4', '2025-10-18T19:24:35.608Z'),
+  ('1760815551417-1760815551377-282677799.png', '1760815551377-282677799.png', '1760815551377-282677799.png', '27.png', 'image/png', 2367973, 'https://svdambalaj.netlify.app/.netlify/blobs/site/uploads/1760815551377-282677799.png', '2025-10-18T19:25:51.417Z')
 on conflict (id) do update
 set storage_key = excluded.storage_key,
     filename = excluded.filename,
@@ -116,7 +116,7 @@ set image_url = excluded.image_url,
 -- Landing media -----------------------------------------------------------------
 insert into landing_media (id, hero_video_src, hero_video_poster, hero_video_media_id, hero_video_poster_media_id, created_at, updated_at)
 values
-  (1, '/uploads/1760815475590-315818037.mp4', '/uploads/1760815551377-282677799.png', '1760815475608-1760815475590-315818037.mp4', '1760815551417-1760815551377-282677799.png', '2025-10-18T19:24:35.608Z', '2025-10-18T19:25:51.417Z')
+  (1, 'https://svdambalaj.netlify.app/.netlify/blobs/site/uploads/1760815475590-315818037.mp4', 'https://svdambalaj.netlify.app/.netlify/blobs/site/uploads/1760815551377-282677799.png', '1760815475608-1760815475590-315818037.mp4', '1760815551417-1760815551377-282677799.png', '2025-10-18T19:24:35.608Z', '2025-10-18T19:25:51.417Z')
 on conflict (id) do update
 set hero_video_src = excluded.hero_video_src,
     hero_video_poster = excluded.hero_video_poster,
@@ -138,7 +138,7 @@ set media_id = excluded.media_id,
 insert into landing_media_highlights (landing_media_id, title, caption, media_id, image_url, sort_order, created_at)
 values
   (1, 'Tam otomatik dolum hattı', 'Saha görüntüleriniz burada yer alabilir.', null, '/images/landing/25.png', 0, '2025-10-18T19:24:35.608Z'),
-  (1, 'asdasd', 'asdasd', '1760813405580-1760813405578-422281035.jpeg', '/uploads/1760813405578-422281035.jpeg', 1, '2025-10-18T19:24:35.608Z')
+  (1, 'asdasd', 'asdasd', '1760813405580-1760813405578-422281035.jpeg', 'https://svdambalaj.netlify.app/.netlify/blobs/site/uploads/1760813405578-422281035.jpeg', 1, '2025-10-18T19:24:35.608Z')
 on conflict (landing_media_id, sort_order) do update
 set title = excluded.title,
     caption = excluded.caption,
