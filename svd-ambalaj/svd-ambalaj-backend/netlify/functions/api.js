@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const http = require('http');
 const fs = require('fs').promises;
 const fsSync = require('fs');
@@ -6,6 +6,10 @@ const path = require('path');
 const crypto = require('crypto');
 const multer = require('multer');
 const mime = require('mime-types');
+const catalogDb = require('../../db/catalog');
+const ordersDb = require('../../db/orders');
+const samplesDb = require('../../db/samples');
+const mediaDb = require('../../db/media');
 
 const router = express.Router();
 router.use(express.json());
@@ -15,33 +19,6 @@ const isNetlifyRuntime = Boolean(
   process.env.NETLIFY ||
   process.env.AWS_LAMBDA_FUNCTION_NAME ||
   process.env.LAMBDA_TASK_ROOT
-);
-
-const resolveExistingPath = (candidates, fallback) => {
-  for (const candidate of candidates) {
-    if (!candidate) {
-      continue;
-    }
-    try {
-      if (fsSync.existsSync(candidate)) {
-        return candidate;
-      }
-    } catch (error) {
-      console.error('Path check failed:', candidate, error);
-    }
-  }
-  return fallback;
-};
-
-const packagedDataDir = resolveExistingPath(
-  [
-    path.join(__dirname, '../../data'),
-    path.join(__dirname, '../data'),
-    path.join(process.cwd(), 'svd-ambalaj/svd-ambalaj-backend/data'),
-    path.join(process.cwd(), 'svd-ambalaj-backend/data'),
-    path.join(process.cwd(), 'data'),
-  ],
-  path.join(__dirname, '../../data')
 );
 
 const ensureDirectory = (dir) => {
@@ -63,31 +40,6 @@ const ensureDirectory = (dir) => {
     return null;
   }
 };
-
-const runtimeDataDir = (() => {
-  if (isNetlifyRuntime) {
-    const tmpDir = ensureDirectory(path.join('/tmp', 'svd-data')) || path.join('/tmp', 'svd-data');
-    try {
-      if (packagedDataDir && fsSync.existsSync(packagedDataDir)) {
-        const files = fsSync.readdirSync(packagedDataDir);
-        for (const file of files) {
-          if (!file.endsWith('.json')) {
-            continue;
-          }
-          const source = path.join(packagedDataDir, file);
-          const target = path.join(tmpDir, file);
-          if (!fsSync.existsSync(target)) {
-            fsSync.copyFileSync(source, target);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Failed to prepare runtime data directory:', error);
-    }
-    return tmpDir;
-  }
-  return packagedDataDir;
-})();
 
 const uploadsDir = (() => {
   const candidates = isNetlifyRuntime
@@ -114,27 +66,7 @@ const ensureUploadsDir = () => {
   ensureDirectory(uploadsDir);
 };
 
-console.log('API_INIT', { packagedDataDir, runtimeDataDir, uploadsDir });
-const DEFAULT_DATA = {
-  'products.json': { products: [] },
-  'orders.json': { orders: [] },
-  'categories.json': { categories: [] },
-  'customers.json': { customers: [] },
-  'samples.json': { samples: [] },
-  'landing-media.json': {
-    landingMedia: {
-      heroGallery: [],
-      heroVideo: { src: '', poster: '' },
-      mediaHighlights: [],
-    },
-  },
-  'media.json': { media: [] },
-};
-
-const cloneDefault = (filename) => {
-  const value = DEFAULT_DATA[filename];
-  return value ? JSON.parse(JSON.stringify(value)) : null;
-};
+console.log('API_INIT', { uploadsDir });
 
 const handlerApp = express();
 handlerApp.use('/.netlify/functions/api', router);
@@ -150,7 +82,7 @@ router.get('/uploads/:filename', async (req, res) => {
     const safeName = path.basename(req.params.filename);
     const filePath = path.join(uploadsDir, safeName);
     if (!fsSync.existsSync(filePath)) {
-      return res.status(404).json({ error: 'Dosya bulunamadı.' });
+      return res.status(404).json({ error: 'Dosya bulunamadÄ±.' });
     }
     const mimeType = mime.lookup(filePath) || 'application/octet-stream';
     res.setHeader('Content-Type', mimeType);
@@ -162,123 +94,9 @@ router.get('/uploads/:filename', async (req, res) => {
     stream.pipe(res);
   } catch (error) {
     console.error('Error serving upload:', error);
-    res.status(500).json({ error: 'Dosya yüklenirken hata oluştu.' });
+    res.status(500).json({ error: 'Dosya yÃ¼klenirken hata oluÅŸtu.' });
   }
 });
-
-const readJson = async (filename) => {
-  const runtimePath = runtimeDataDir ? path.join(runtimeDataDir, filename) : null;
-  const packagedPath =
-    packagedDataDir && packagedDataDir !== runtimeDataDir
-      ? path.join(packagedDataDir, filename)
-      : null;
-
-  try {
-    if (runtimePath) {
-      const content = await fs.readFile(runtimePath, 'utf8');
-      return JSON.parse(content);
-    }
-  } catch (error) {
-    if (error.code === 'ENOENT' && packagedDataDir && packagedDataDir !== runtimeDataDir) {
-      try {
-        if (packagedPath) {
-          const packagedContent = await fs.readFile(packagedPath, 'utf8');
-          const data = JSON.parse(packagedContent);
-          try {
-            await writeJson(filename, data);
-          } catch (seedError) {
-            console.warn(`Unable to seed runtime data for ${filename}:`, seedError);
-          }
-          return data;
-        }
-      } catch (fallbackError) {
-        console.error(`Failed to read packaged data for ${filename}:`, fallbackError);
-      }
-    }
-    const fallback = cloneDefault(filename);
-    if (fallback) {
-      try {
-        await writeJson(filename, fallback);
-      } catch (seedError) {
-        console.warn(`Unable to write default data for ${filename}:`, seedError);
-      }
-      return fallback;
-    }
-    throw error;
-  }
-
-  if (runtimePath) {
-    try {
-      const content = await fs.readFile(runtimePath, 'utf8');
-      return JSON.parse(content);
-    } catch (error) {
-      console.error(`Failed to read runtime data for ${filename}:`, error);
-    }
-  }
-
-  if (packagedPath) {
-    try {
-      const packagedContent = await fs.readFile(packagedPath, 'utf8');
-      return JSON.parse(packagedContent);
-    } catch (error) {
-      console.error(`Failed to read packaged data for ${filename}:`, error);
-    }
-  }
-
-  const fallback = cloneDefault(filename);
-  if (fallback) {
-    return fallback;
-  }
-
-  throw new Error(`Unable to load data file: ${filename}`);
-};
-
-const writeJson = async (filename, data) => {
-  const baseDir = isNetlifyRuntime ? path.join('/tmp', 'svd-data') : runtimeDataDir;
-  const preferredDir = ensureDirectory(baseDir);
-  const fallbackDir = preferredDir || ensureDirectory(path.join('/tmp', 'svd-data'));
-  const dir = fallbackDir || baseDir || runtimeDataDir || path.join('/tmp', 'svd-data');
-  const filePath = path.join(dir, filename);
-  try {
-    await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
-  } catch (error) {
-    console.error(`Failed to write ${filename}:`, error);
-    throw error;
-  }
-};
-
-const readJsonWithFallback = async (filename, fallback) => {
-  try {
-    return await readJson(filename);
-  } catch (error) {
-    if (error.code === 'ENOENT') {
-      try {
-        await writeJson(filename, fallback);
-      } catch (writeError) {
-        console.warn(`Failed to seed ${filename} with fallback:`, writeError);
-      }
-      return fallback;
-    }
-    console.error(`Failed to read ${filename}:`, error);
-    return fallback;
-  }
-};
-
-const slugify = (text = '') =>
-  text
-    .toString()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-zA-Z0-9\s-]/g, '')
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-');
-
-const parseBulkPricing = (input, fallback = []) => {
-  if (!input && input !== 0) {
-    return fallback;
-  }
 
   let source = input;
   if (typeof source === 'string') {
@@ -337,8 +155,8 @@ const defaultLandingMedia = {
   },
   mediaHighlights: [
     {
-      title: 'Tam otomatik dolum hattı',
-      caption: 'Saha görüntüleriniz burada yer alabilir.',
+      title: 'Tam otomatik dolum hattÄ±',
+      caption: 'Saha gÃ¶rÃ¼ntÃ¼leriniz burada yer alabilir.',
       image: '/images/landing/25.png',
     },
   ],
@@ -472,11 +290,11 @@ router.post('/auth/login', (req, res) => {
   const { username, password } = req.body || {};
 
   if (!username || !password) {
-    return res.status(400).json({ error: 'Kullanıcı adı ve şifre zorunludur.' });
+    return res.status(400).json({ error: 'KullanÄ±cÄ± adÄ± ve ÅŸifre zorunludur.' });
   }
 
   if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
-    return res.status(401).json({ error: 'Geçersiz kullanıcı adı veya şifre.' });
+    return res.status(401).json({ error: 'GeÃ§ersiz kullanÄ±cÄ± adÄ± veya ÅŸifre.' });
   }
 
   const { token, expiresAt } = createAdminToken(username);
@@ -489,157 +307,155 @@ router.get('/auth/me', requireAdmin, (req, res) => {
 
 router.get('/media', requireAdmin, async (_req, res) => {
   try {
-    const mediaStore = await readJsonWithFallback('media.json', { media: [] });
-    res.json(mediaStore);
+    const media = await mediaDb.listMedia();
+    const sanitized = media.map(({ storageKey, checksum, metadata, ...rest }) => rest);
+    res.json({ media: sanitized });
   } catch (error) {
     console.error('Error reading media store:', error);
-    res.status(500).json({ error: 'Medya dosyaları yüklenirken hata oluştu' });
+    res.status(500).json({ error: 'Medya dosyalari yuklenirken hata olustu' });
   }
 });
 
 router.post('/media', requireAdmin, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'Yüklenecek dosya bulunamadı.' });
+      return res.status(400).json({ error: 'Yuklenecek dosya bulunamadi.' });
     }
 
-    const mediaStore = await readJsonWithFallback('media.json', { media: [] });
-    const item = {
-      id: `${Date.now()}-${req.file.filename}`,
+    const id = `${Date.now()}-${req.file.filename}`;
+    const createdMedia = await mediaDb.createMediaEntry({
+      id,
+      storageKey: req.file.filename,
       filename: req.file.filename,
       originalName: req.file.originalname,
-      size: req.file.size,
       mimeType: req.file.mimetype,
+      size: req.file.size,
       url: `/uploads/${req.file.filename}`,
-      createdAt: new Date().toISOString(),
-    };
+    });
 
-    mediaStore.media.push(item);
-    await writeJson('media.json', mediaStore);
+    const { storageKey, checksum, metadata, ...media } = createdMedia;
 
-    res.status(201).json({ media: item });
+    res.status(201).json({ media });
   } catch (error) {
     console.error('Error uploading media:', error);
-    res.status(500).json({ error: 'Medya yüklenirken hata oluştu' });
+    res.status(500).json({ error: 'Medya yuklenirken hata olustu' });
   }
 });
 
 router.delete('/media/:id', requireAdmin, async (req, res) => {
   try {
-    const mediaStore = await readJsonWithFallback('media.json', { media: [] });
-    const index = mediaStore.media.findIndex((item) => item.id === req.params.id);
+    const removed = await mediaDb.deleteMedia(req.params.id);
 
-    if (index === -1) {
-      return res.status(404).json({ error: 'Silinecek medya bulunamadı.' });
+    if (!removed) {
+      return res.status(404).json({ error: 'Silinecek medya bulunamadi.' });
     }
-
-    const [removed] = mediaStore.media.splice(index, 1);
-    await writeJson('media.json', mediaStore);
 
     try {
       await fs.unlink(path.join(uploadsDir, removed.filename));
-    } catch (error) {
-      if (error.code !== 'ENOENT') {
-        console.error('Error deleting media file:', error);
+    } catch (fsError) {
+      if (fsError.code !== 'ENOENT') {
+        console.error('Error deleting media file:', fsError);
       }
     }
 
-    res.json({ media: removed });
+    const { storageKey, checksum, metadata, ...media } = removed;
+
+    res.json({ media });
   } catch (error) {
     console.error('Error deleting media:', error);
-    res.status(500).json({ error: 'Medya silinirken hata oluştu' });
+    res.status(500).json({ error: 'Medya silinirken hata olustu' });
   }
 });
 
 router.get('/landing-media', async (_req, res) => {
   try {
-    const media = await readJsonWithFallback('landing-media.json', defaultLandingMedia);
-    res.json({ landingMedia: sanitizeLandingMedia(media) });
+    const landingMedia = await mediaDb.fetchLandingMedia();
+    res.json({ landingMedia: sanitizeLandingMedia(landingMedia, defaultLandingMedia) });
   } catch (error) {
     console.error('Error reading landing media:', error);
-    res.status(500).json({ error: 'Landing medya içeriği yüklenirken hata oluştu' });
+    res.status(500).json({ error: 'Landing medya icerigi yuklenirken hata olustu' });
   }
 });
 
 router.put('/landing-media', requireAdmin, async (req, res) => {
   try {
-    const current = await readJsonWithFallback('landing-media.json', defaultLandingMedia);
-    const sanitized = sanitizeLandingMedia(req.body, current);
-    await writeJson('landing-media.json', sanitized);
-    res.json({ landingMedia: sanitized });
+    const sanitizedPayload = sanitizeLandingMedia(req.body, defaultLandingMedia);
+    const updated = await mediaDb.updateLandingMedia(sanitizedPayload);
+    res.json({ landingMedia: sanitizeLandingMedia(updated, defaultLandingMedia) });
   } catch (error) {
     console.error('Error updating landing media:', error);
-    res.status(500).json({ error: 'Landing medya güncellenirken hata oluştu' });
+    res.status(500).json({ error: 'Landing medya guncellenirken hata olustu' });
   }
 });
 
 router.get('/products', async (_req, res) => {
   try {
-    const data = await readJson('products.json');
-    res.json(data);
+    const products = await catalogDb.listProducts();
+    res.json({ products });
   } catch (error) {
     console.error('Error reading products:', error);
-    res.status(500).json({ error: 'Ürünler yüklenirken hata oluştu' });
+    res.status(500).json({ error: 'Urunler yuklenirken hata olustu' });
   }
 });
 
 router.get('/products/:id', async (req, res) => {
   try {
-    const data = await readJson('products.json');
-    const product = data.products.find((item) => item.id === req.params.id);
+    const product = await catalogDb.getProductById(req.params.id);
 
     if (!product) {
-      return res.status(404).json({ error: 'Ürün bulunamadı' });
+      return res.status(404).json({ error: 'Urun bulunamadi' });
     }
 
     res.json(product);
   } catch (error) {
     console.error('Error reading product:', error);
-    res.status(500).json({ error: 'Ürün yüklenirken hata oluştu' });
+    res.status(500).json({ error: 'Urun yuklenirken hata olustu' });
   }
 });
 
 router.get('/products/slug/:slug', async (req, res) => {
   try {
-    const data = await readJson('products.json');
-    const product = data.products.find((item) => item.slug === req.params.slug);
+    const product = await catalogDb.getProductBySlug(req.params.slug);
 
     if (!product) {
-      return res.status(404).json({ error: 'Ürün bulunamadı' });
+      return res.status(404).json({ error: 'Urun bulunamadi' });
     }
 
     res.json(product);
   } catch (error) {
     console.error('Error reading product by slug:', error);
-    res.status(500).json({ error: 'Ürün yüklenirken hata oluştu' });
+    res.status(500).json({ error: 'Urun yuklenirken hata olustu' });
   }
 });
 
 router.get('/categories', async (_req, res) => {
   try {
-    const data = await readJson('categories.json');
-    res.json(data);
+    const categories = await catalogDb.listCategories();
+    res.json({ categories });
   } catch (error) {
     console.error('Error reading categories:', error);
-    res.status(500).json({ error: 'Kategoriler yüklenirken hata oluştu' });
+    res.status(500).json({ error: 'Kategoriler yuklenirken hata olustu' });
   }
 });
 
 router.get('/categories/:slug/products', async (req, res) => {
   try {
-    const { slug } = req.params;
-    const products = await readJson('products.json');
-    const filtered = products.products.filter((item) => item.category === slug);
-    res.json({ products: filtered });
+    const category = await catalogDb.getCategoryBySlug(req.params.slug);
+
+    if (!category) {
+      return res.json({ products: [] });
+    }
+
+    const products = await catalogDb.listProductsByCategory(category.id);
+    res.json({ products });
   } catch (error) {
     console.error('Error filtering category products:', error);
-    res.status(500).json({ error: 'Kategori ürünleri yüklenirken hata oluştu' });
+    res.status(500).json({ error: 'Kategori urunleri yuklenirken hata olustu' });
   }
 });
 
 router.post('/products', requireAdmin, async (req, res) => {
   try {
-    const data = await readJson('products.json');
     const {
       id: incomingId,
       title,
@@ -654,25 +470,35 @@ router.post('/products', requireAdmin, async (req, res) => {
     } = req.body;
 
     if (!title) {
-      return res.status(400).json({ error: 'Ürün başlığı (title) zorunludur.' });
+      return res.status(400).json({ error: 'Urun basligi (title) zorunludur.' });
     }
 
     if (!category) {
-      return res.status(400).json({ error: 'Kategori (category) alanı zorunludur.' });
+      return res.status(400).json({ error: 'Kategori (category) alani zorunludur.' });
     }
 
     const slug = incomingSlug ? incomingSlug.trim() : slugify(title);
     const id = incomingId ? incomingId.trim() : slug;
 
-    if (data.products.some((product) => product.id === id)) {
-      return res.status(409).json({ error: 'Aynı id değerine sahip bir ürün zaten mevcut.' });
+    const [existingById, existingBySlug] = await Promise.all([
+      catalogDb.getProductById(id),
+      catalogDb.getProductBySlug(slug),
+    ]);
+
+    if (existingById) {
+      return res.status(409).json({ error: 'Ayni id degerine sahip bir urun zaten mevcut.' });
     }
 
-    if (data.products.some((product) => product.slug === slug)) {
-      return res.status(409).json({ error: 'Aynı slug değerine sahip bir ürün zaten mevcut.' });
+    if (existingBySlug) {
+      return res.status(409).json({ error: 'Ayni slug degerine sahip bir urun zaten mevcut.' });
     }
 
-    const product = {
+    const categoryRecord = await catalogDb.getCategoryById(category);
+    if (!categoryRecord) {
+      return res.status(400).json({ error: 'Gecerli bir kategori secmelisiniz.' });
+    }
+
+    const product = await catalogDb.createProduct({
       id,
       title,
       slug,
@@ -682,29 +508,23 @@ router.post('/products', requireAdmin, async (req, res) => {
       category,
       images: sanitizeImages(images ?? image ?? [], []),
       stock: Number.isFinite(Number(stock)) ? Number(stock) : 0,
-      createdAt: new Date().toISOString(),
-    };
-
-    data.products.push(product);
-    await writeJson('products.json', data);
+    });
 
     res.status(201).json({ product });
   } catch (error) {
     console.error('Error creating product:', error);
-    res.status(500).json({ error: 'Ürün oluşturulurken hata oluştu' });
+    res.status(500).json({ error: 'Urun olusturulurken hata olustu' });
   }
 });
 
 router.put('/products/:id', requireAdmin, async (req, res) => {
   try {
-    const data = await readJson('products.json');
-    const productIndex = data.products.findIndex((item) => item.id === req.params.id);
+    const existing = await catalogDb.getProductById(req.params.id);
 
-    if (productIndex === -1) {
-      return res.status(404).json({ error: 'Güncellenecek ürün bulunamadı.' });
+    if (!existing) {
+      return res.status(404).json({ error: 'Guncellenecek urun bulunamadi.' });
     }
 
-    const existing = data.products[productIndex];
     const {
       title = existing.title,
       slug: incomingSlug,
@@ -717,67 +537,72 @@ router.put('/products/:id', requireAdmin, async (req, res) => {
       stock,
     } = req.body;
 
-    if (!title) {
-      return res.status(400).json({ error: 'Ürün başlığı (title) zorunludur.' });
-    }
-
-    if (!category) {
-      return res.status(400).json({ error: 'Kategori (category) alanı zorunludur.' });
-    }
-
     const slug = incomingSlug ? incomingSlug.trim() : existing.slug || slugify(title);
 
-    if (slug !== existing.slug && data.products.some((product) => product.slug === slug)) {
-      return res.status(409).json({ error: 'Aynı slug değerine sahip bir ürün zaten mevcut.' });
+    if (slug !== existing.slug) {
+      const slugMatch = await catalogDb.getProductBySlug(slug);
+      if (slugMatch && slugMatch.id !== existing.id) {
+        return res.status(409).json({ error: 'Ayni slug degerine sahip bir urun zaten mevcut.' });
+      }
     }
 
-    const updatedProduct = {
-      ...existing,
+    if (category && category !== existing.category) {
+      const categoryRecord = await catalogDb.getCategoryById(category);
+      if (!categoryRecord) {
+        return res.status(400).json({ error: 'Gecerli bir kategori secmelisiniz.' });
+      }
+    }
+
+    const sanitizedBulkPricing =
+      bulkPricing !== undefined ? parseBulkPricing(bulkPricing, existing.bulkPricing) : undefined;
+
+    const sanitizedImages =
+      images !== undefined || image !== undefined
+        ? sanitizeImages(images ?? image ?? existing.images, existing.images)
+        : undefined;
+
+    const computedStock =
+      stock !== undefined
+        ? Number.isFinite(Number(stock))
+          ? Number(stock)
+          : existing.stock
+        : undefined;
+
+    const updatedProduct = await catalogDb.updateProduct(existing.id, {
       title,
       slug,
       description,
-      price: price !== undefined ? (Number(price) || 0) : existing.price,
-      bulkPricing: bulkPricing !== undefined ? parseBulkPricing(bulkPricing, existing.bulkPricing) : existing.bulkPricing,
+      price: price !== undefined ? Number(price) : undefined,
+      bulkPricing: sanitizedBulkPricing,
       category,
-      images:
-        images !== undefined || image !== undefined
-          ? sanitizeImages(images ?? image ?? existing.images, existing.images)
-          : existing.images,
-      stock: stock !== undefined ? (Number.isFinite(Number(stock)) ? Number(stock) : existing.stock) : existing.stock,
-    };
-
-    data.products[productIndex] = updatedProduct;
-    await writeJson('products.json', data);
+      images: sanitizedImages,
+      stock: computedStock,
+    });
 
     res.json({ product: updatedProduct });
   } catch (error) {
     console.error('Error updating product:', error);
-    res.status(500).json({ error: 'Ürün güncellenirken hata oluştu' });
+    res.status(500).json({ error: 'Urun guncellenirken hata olustu' });
   }
 });
 
 router.delete('/products/:id', requireAdmin, async (req, res) => {
   try {
-    const data = await readJson('products.json');
-    const productIndex = data.products.findIndex((item) => item.id === req.params.id);
+    const removedProduct = await catalogDb.deleteProduct(req.params.id);
 
-    if (productIndex === -1) {
-      return res.status(404).json({ error: 'Silinecek ürün bulunamadı.' });
+    if (!removedProduct) {
+      return res.status(404).json({ error: 'Silinecek urun bulunamadi.' });
     }
-
-    const [removedProduct] = data.products.splice(productIndex, 1);
-    await writeJson('products.json', data);
 
     res.json({ product: removedProduct });
   } catch (error) {
     console.error('Error deleting product:', error);
-    res.status(500).json({ error: 'Ürün silinirken hata oluştu' });
+    res.status(500).json({ error: 'Urun silinirken hata olustu' });
   }
 });
 
 router.post('/categories', requireAdmin, async (req, res) => {
   try {
-    const data = await readJson('categories.json');
     const {
       id: incomingId,
       name,
@@ -787,49 +612,48 @@ router.post('/categories', requireAdmin, async (req, res) => {
     } = req.body;
 
     if (!name) {
-      return res.status(400).json({ error: 'Kategori adı (name) zorunludur.' });
+      return res.status(400).json({ error: 'Kategori adi (name) zorunludur.' });
     }
 
     const slug = incomingSlug ? incomingSlug.trim() : slugify(name);
     const id = incomingId ? incomingId.trim() : slug;
 
-    if (data.categories.some((category) => category.id === id)) {
-      return res.status(409).json({ error: 'Aynı id değerine sahip bir kategori zaten mevcut.' });
+    const [existingById, existingBySlug] = await Promise.all([
+      catalogDb.getCategoryById(id),
+      catalogDb.getCategoryBySlug(slug),
+    ]);
+
+    if (existingById) {
+      return res.status(409).json({ error: 'Ayni id degerine sahip bir kategori zaten mevcut.' });
     }
 
-    if (data.categories.some((category) => category.slug === slug)) {
-      return res.status(409).json({ error: 'Aynı slug değerine sahip bir kategori zaten mevcut.' });
+    if (existingBySlug) {
+      return res.status(409).json({ error: 'Ayni slug degerine sahip bir kategori zaten mevcut.' });
     }
 
-    const category = {
+    const category = await catalogDb.createCategory({
       id,
       name,
       slug,
       description,
       image,
-      createdAt: new Date().toISOString(),
-    };
-
-    data.categories.push(category);
-    await writeJson('categories.json', data);
+    });
 
     res.status(201).json({ category });
   } catch (error) {
     console.error('Error creating category:', error);
-    res.status(500).json({ error: 'Kategori oluşturulurken hata oluştu' });
+    res.status(500).json({ error: 'Kategori olusturulurken hata olustu' });
   }
 });
 
 router.put('/categories/:id', requireAdmin, async (req, res) => {
   try {
-    const data = await readJson('categories.json');
-    const categoryIndex = data.categories.findIndex((item) => item.id === req.params.id);
+    const existing = await catalogDb.getCategoryById(req.params.id);
 
-    if (categoryIndex === -1) {
-      return res.status(404).json({ error: 'Güncellenecek kategori bulunamadı.' });
+    if (!existing) {
+      return res.status(404).json({ error: 'Guncellenecek kategori bulunamadi.' });
     }
 
-    const existing = data.categories[categoryIndex];
     const {
       name = existing.name,
       slug: incomingSlug,
@@ -838,218 +662,115 @@ router.put('/categories/:id', requireAdmin, async (req, res) => {
     } = req.body;
 
     if (!name) {
-      return res.status(400).json({ error: 'Kategori adı (name) zorunludur.' });
+      return res.status(400).json({ error: 'Kategori adi (name) zorunludur.' });
     }
 
     const slug = incomingSlug ? incomingSlug.trim() : existing.slug || slugify(name);
 
-    if (slug !== existing.slug && data.categories.some((category) => category.slug === slug)) {
-      return res.status(409).json({ error: 'Aynı slug değerine sahip bir kategori zaten mevcut.' });
+    if (slug !== existing.slug) {
+      const slugMatch = await catalogDb.getCategoryBySlug(slug);
+      if (slugMatch && slugMatch.id !== existing.id) {
+        return res.status(409).json({ error: 'Ayni slug degerine sahip bir kategori zaten mevcut.' });
+      }
     }
 
-    const updated = {
-      ...existing,
+    const category = await catalogDb.updateCategory(existing.id, {
       name,
       slug,
       description,
       image,
-      updatedAt: new Date().toISOString(),
-    };
+    });
 
-    data.categories[categoryIndex] = updated;
-    await writeJson('categories.json', data);
-
-    res.json({ category: updated });
+    res.json({ category });
   } catch (error) {
     console.error('Error updating category:', error);
-    res.status(500).json({ error: 'Kategori güncellenirken hata oluştu' });
+    res.status(500).json({ error: 'Kategori guncellenirken hata olustu' });
   }
 });
 
 router.delete('/categories/:id', requireAdmin, async (req, res) => {
   try {
-    const data = await readJson('categories.json');
-    const categoryIndex = data.categories.findIndex((item) => item.id === req.params.id);
+    const removedCategory = await catalogDb.deleteCategory(req.params.id);
 
-    if (categoryIndex === -1) {
-      return res.status(404).json({ error: 'Silinecek kategori bulunamadı.' });
+    if (!removedCategory) {
+      return res.status(404).json({ error: 'Silinecek kategori bulunamadi.' });
     }
-
-    const [removedCategory] = data.categories.splice(categoryIndex, 1);
-    await writeJson('categories.json', data);
 
     res.json({ category: removedCategory });
   } catch (error) {
+    if (error && error.code === '23503') {
+      return res
+        .status(409)
+        .json({ error: 'Kategori, iliskili urunlar nedeniyle silinemiyor.' });
+    }
     console.error('Error deleting category:', error);
-    res.status(500).json({ error: 'Kategori silinirken hata oluştu' });
+    res.status(500).json({ error: 'Kategori silinirken hata olustu' });
   }
 });
 
 router.post('/orders', async (req, res) => {
   try {
-    const orders = await readJson('orders.json');
-    const payload = {
-      ...req.body,
-      id: `order-${Date.now()}`,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-    };
-    orders.orders.push(payload);
-    await writeJson('orders.json', orders);
-    res.status(201).json({ message: 'Sipariş alındı', order: payload });
+    const order = await ordersDb.createOrder(req.body || {});
+    res.status(201).json({ message: 'Siparis alindi', order });
   } catch (error) {
     console.error('Error creating order:', error);
-    res.status(500).json({ error: 'Sipariş kaydedilirken hata oluştu' });
+    res.status(500).json({ error: 'Siparis kaydedilirken hata olustu' });
   }
 });
 
 router.get('/orders', requireAdmin, async (_req, res) => {
   try {
-    const orders = await readJson('orders.json');
-    res.json(orders);
+    const orders = await ordersDb.listOrders();
+    res.json({ orders });
   } catch (error) {
     console.error('Error reading orders:', error);
-    res.status(500).json({ error: 'Siparişler yüklenirken hata oluştu' });
+    res.status(500).json({ error: 'Siparisler yuklenirken hata olustu' });
   }
 });
 
 router.put('/orders/:id/status', requireAdmin, async (req, res) => {
   try {
-    const ordersData = await readJson('orders.json');
-    const orderIndex = ordersData.orders.findIndex((order) => order.id === req.params.id);
-
-    if (orderIndex === -1) {
-      return res.status(404).json({ error: 'Güncellenecek sipariş bulunamadı.' });
-    }
-
     const { status } = req.body;
     if (!status) {
       return res.status(400).json({ error: 'Yeni durum (status) zorunludur.' });
     }
 
-    ordersData.orders[orderIndex] = {
-      ...ordersData.orders[orderIndex],
-      status,
-      updatedAt: new Date().toISOString(),
-    };
+    const updatedOrder = await ordersDb.updateOrderStatus(req.params.id, status);
+    if (!updatedOrder) {
+      return res.status(404).json({ error: 'Guncellenecek siparis bulunamadi.' });
+    }
 
-    await writeJson('orders.json', ordersData);
-
-    res.json({ order: ordersData.orders[orderIndex] });
+    res.json({ order: updatedOrder });
   } catch (error) {
     console.error('Error updating order status:', error);
-    res.status(500).json({ error: 'Sipariş güncellenirken hata oluştu' });
+    res.status(500).json({ error: 'Siparis guncellenirken hata olustu' });
   }
 });
 
 router.post('/samples', async (req, res) => {
   try {
-    const samples = await readJson('samples.json');
-    const payload = {
-      ...req.body,
-      id: `sample-${Date.now()}`,
-      status: 'requested',
-      createdAt: new Date().toISOString(),
-    };
-    samples.samples.push(payload);
-    await writeJson('samples.json', samples);
-    res.status(201).json({ message: 'Numune talebi alındı', sample: payload });
+    const sample = await samplesDb.createSampleRequest(req.body || {});
+    res.status(201).json({ message: 'Numune talebi alindi', sample });
   } catch (error) {
     console.error('Error creating sample request:', error);
-    res.status(500).json({ error: 'Numune talebi kaydedilirken hata oluştu' });
+    res.status(500).json({ error: 'Numune talebi kaydedilirken hata olustu' });
   }
 });
 
 router.get('/stats/overview', requireAdmin, async (req, res) => {
   try {
-    const requestedFrom = req.query?.from;
-    const requestedTo = req.query?.to;
-    const requestedCategory = req.query?.category;
-    const requestedStatusRaw = req.query?.status;
-    const requestedStatus = requestedStatusRaw && requestedStatusRaw !== 'all' ? requestedStatusRaw.toLowerCase() : null;
-
-    const [ordersData, productsData] = await Promise.all([
-      readJson('orders.json'),
-      readJson('products.json'),
-    ]);
-
-    const orders = ordersData.orders ?? [];
-    const products = productsData.products ?? [];
-    const productMap = new Map(products.map((product) => [product.id, product]));
-
-    let totalRevenue = 0;
-    let pendingOrders = 0;
-    const categoryTotals = new Map();
-    const monthlyTotals = new Map();
-
-    for (const order of orders) {
-      const createdAtDate = order.createdAt ? new Date(order.createdAt) : null;
-
-      if (requestedFrom || requestedTo) {
-        const fromTime = requestedFrom ? new Date(requestedFrom).getTime() : null;
-        const toTime = requestedTo ? new Date(requestedTo).getTime() : null;
-        const orderTime = createdAtDate && !Number.isNaN(createdAtDate.getTime()) ? createdAtDate.getTime() : null;
-
-        if (orderTime === null) {
-          continue;
-        }
-
-        if (fromTime !== null && orderTime < fromTime) {
-          continue;
-        }
-
-        if (toTime !== null && orderTime > toTime + (24 * 60 * 60 * 1000 - 1)) {
-          continue;
-        }
-      }
-
-      const orderTotal = Number(order?.totals?.subtotal) || 0;
-      const statusValue = (order.status || '').toLowerCase();
-
-      if (requestedStatus && statusValue !== requestedStatus) {
-        continue;
-      }
-
-      totalRevenue += orderTotal;
-
-      if (statusValue === 'pending' || statusValue === 'beklemede') {
-        pendingOrders += 1;
-      }
-
-      const items = order.items ?? [];
-      for (const item of items) {
-        const product = productMap.get(item.id);
-        const category = product?.category ?? 'other';
-
-        if (requestedCategory && requestedCategory !== 'all' && category !== requestedCategory) {
-          continue;
-        }
-
-        const amount = Number(item.subtotal) || (Number(item.price) * Number(item.quantity)) || 0;
-        categoryTotals.set(category, (categoryTotals.get(category) || 0) + amount);
-      }
-
-      if (createdAtDate && !Number.isNaN(createdAtDate.getTime())) {
-        const monthKey = `${createdAtDate.getFullYear()}-${String(createdAtDate.getMonth() + 1).padStart(2, '0')}`;
-        monthlyTotals.set(monthKey, (monthlyTotals.get(monthKey) || 0) + orderTotal);
-      }
-    }
-
-    const stats = {
-      totalRevenue,
-      totalOrders: orders.length,
-      pendingOrders,
-      averageOrderValue: orders.length ? totalRevenue / orders.length : 0,
-      categorySales: Array.from(categoryTotals.entries()).map(([category, total]) => ({ category, total })),
-      monthlySales: Array.from(monthlyTotals.entries())
-        .map(([month, total]) => ({ month, total }))
-        .sort((a, b) => (a.month > b.month ? 1 : -1)),
+    const filters = {
+      from: req.query?.from || null,
+      to: req.query?.to || null,
+      category: req.query?.category || null,
+      status: req.query?.status || null,
     };
 
+    const stats = await ordersDb.getStatsOverview(filters);
     res.json(stats);
   } catch (error) {
     console.error('Error computing stats:', error);
-    res.status(500).json({ error: 'İstatistikler hesaplanırken hata oluştu' });
+    res.status(500).json({ error: 'Istatistikler hesaplanirken hata olustu' });
   }
 });
 
@@ -1125,6 +846,10 @@ module.exports.handler = async (event, context) => {
     });
   });
 };
+
+
+
+
 
 
 
