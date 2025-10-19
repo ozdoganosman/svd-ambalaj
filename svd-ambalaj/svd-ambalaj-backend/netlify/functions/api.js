@@ -5,6 +5,7 @@ const fsSync = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const multer = require('multer');
+const mime = require('mime-types');
 
 const router = express.Router();
 router.use(express.json());
@@ -142,6 +143,28 @@ const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 const ADMIN_SECRET = process.env.ADMIN_SECRET || 'svd-admin-secret';
 const ADMIN_TOKEN_EXPIRY_MINUTES = Number(process.env.ADMIN_TOKEN_EXPIRY_MINUTES || 120);
+
+router.get('/uploads/:filename', async (req, res) => {
+  try {
+    ensureUploadsDir();
+    const safeName = path.basename(req.params.filename);
+    const filePath = path.join(uploadsDir, safeName);
+    if (!fsSync.existsSync(filePath)) {
+      return res.status(404).json({ error: 'Dosya bulunamadı.' });
+    }
+    const mimeType = mime.lookup(filePath) || 'application/octet-stream';
+    res.setHeader('Content-Type', mimeType);
+    const stream = fsSync.createReadStream(filePath);
+    stream.on('error', (error) => {
+      console.error('Upload stream error:', error);
+      res.status(500).end();
+    });
+    stream.pipe(res);
+  } catch (error) {
+    console.error('Error serving upload:', error);
+    res.status(500).json({ error: 'Dosya yüklenirken hata oluştu.' });
+  }
+});
 
 const readJson = async (filename) => {
   const runtimePath = runtimeDataDir ? path.join(runtimeDataDir, filename) : null;
