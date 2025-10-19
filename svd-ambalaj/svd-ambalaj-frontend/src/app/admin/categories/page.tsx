@@ -19,6 +19,13 @@ type CategoryPayload = {
   image?: string;
 };
 
+const FIELD_IDS = {
+  name: "admin-category-name",
+  slug: "admin-category-slug",
+  description: "admin-category-description",
+  image: "admin-category-image",
+};
+
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [form, setForm] = useState<CategoryPayload>(emptyForm);
@@ -203,8 +210,10 @@ export default function AdminCategoriesPage() {
         )}
         <form className="grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
           <div className="md:col-span-1">
-            <label className="block text-sm font-medium text-slate-700">Ad</label>
+            <label className="block text-sm font-medium text-slate-700" htmlFor={FIELD_IDS.name}>Ad</label>
             <input
+              id={FIELD_IDS.name}
+              name="name"
               type="text"
               value={form.name}
               onChange={(event) => handleChange("name", event.target.value)}
@@ -214,8 +223,10 @@ export default function AdminCategoriesPage() {
             />
           </div>
           <div className="md:col-span-1">
-            <label className="block text-sm font-medium text-slate-700">Slug</label>
+            <label className="block text-sm font-medium text-slate-700" htmlFor={FIELD_IDS.slug}>Slug</label>
             <input
+              id={FIELD_IDS.slug}
+              name="slug"
               type="text"
               value={derivedSlug}
               onChange={(event) => handleChange("slug", event.target.value)}
@@ -225,8 +236,10 @@ export default function AdminCategoriesPage() {
             <p className="mt-1 text-xs text-slate-500">Boş bırakırsanız otomatik oluşturulur.</p>
           </div>
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-slate-700">Açıklama</label>
+            <label className="block text-sm font-medium text-slate-700" htmlFor={FIELD_IDS.description}>Açıklama</label>
             <textarea
+              id={FIELD_IDS.description}
+              name="description"
               value={form.description ?? ""}
               onChange={(event) => handleChange("description", event.target.value)}
               className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-amber-500 focus:outline-none focus:ring-amber-500"
@@ -235,8 +248,10 @@ export default function AdminCategoriesPage() {
             />
           </div>
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-slate-700">Görsel URL</label>
+            <label className="block text-sm font-medium text-slate-700" htmlFor={FIELD_IDS.image}>Görsel URL</label>
             <input
+              id={FIELD_IDS.image}
+              name="image"
               type="text"
               value={form.image ?? ""}
               onChange={(event) => handleChange("image", event.target.value)}

@@ -1,14 +1,34 @@
-const { Pool, neonConfig } = require('@netlify/neon');
+const fs = require('fs');
+const path = require('path');
+const dotenv = require('dotenv');
+
+const dotenvCandidates = [
+  path.resolve(process.cwd(), '.env.local'),
+  path.resolve(process.cwd(), '.env'),
+  path.resolve(__dirname, '../../.env.local'),
+  path.resolve(__dirname, '../../.env'),
+  path.resolve(__dirname, '../.env.local'),
+  path.resolve(__dirname, '../.env'),
+];
+
+for (const dotenvPath of dotenvCandidates) {
+  if (fs.existsSync(dotenvPath)) {
+    dotenv.config({ path: dotenvPath, override: false });
+  }
+}
+
+const { Pool, neonConfig } = require('@neondatabase/serverless');
 
 const connectionString =
   process.env.NEON_DATABASE_URL ||
+  process.env.NETLIFY_DATABASE_URL ||
   process.env.DATABASE_URL ||
   process.env.POSTGRES_URL ||
   process.env.POSTGRES_CONNECTION_STRING;
 
 if (!connectionString) {
   throw new Error(
-    'Database connection string not found. Please set NEON_DATABASE_URL or DATABASE_URL in your environment.'
+    'Database connection string not found. Please set NEON_DATABASE_URL, NETLIFY_DATABASE_URL, or DATABASE_URL in your environment (e.g. via an .env file).'
   );
 }
 

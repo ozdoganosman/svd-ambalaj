@@ -115,8 +115,12 @@ function ProtectedAdminGuard({ children }: AdminGuardProps) {
             <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">{state.error}</div>
           )}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700">Kullanıcı Adı</label>
+            <label className="block text-sm font-medium text-slate-700" htmlFor="admin-username">
+              Kullanıcı Adı
+            </label>
             <input
+              id="admin-username"
+              name="username"
               type="text"
               value={credentials.username}
               onChange={(event) => setCredentials((prev) => ({ ...prev, username: event.target.value }))}
@@ -125,8 +129,12 @@ function ProtectedAdminGuard({ children }: AdminGuardProps) {
             />
           </div>
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700">Şifre</label>
+            <label className="block text-sm font-medium text-slate-700" htmlFor="admin-password">
+              Şifre
+            </label>
             <input
+              id="admin-password"
+              name="password"
               type="password"
               value={credentials.password}
               onChange={(event) => setCredentials((prev) => ({ ...prev, password: event.target.value }))}

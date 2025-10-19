@@ -98,6 +98,11 @@ router.get('/uploads/:filename', async (req, res) => {
   }
 });
 
+const parseBulkPricing = (input, fallback = []) => {
+  if (!input && input !== 0) {
+    return fallback;
+  }
+
   let source = input;
   if (typeof source === 'string') {
     if (!source.trim()) {

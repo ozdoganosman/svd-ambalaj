@@ -35,6 +35,16 @@ const createEmptyForm = (): ProductPayload => ({
 
 const emptyForm: ProductPayload = createEmptyForm();
 
+const FIELD_IDS = {
+  title: "admin-product-title",
+  slug: "admin-product-slug",
+  description: "admin-product-description",
+  price: "admin-product-price",
+  stock: "admin-product-stock",
+  category: "admin-product-category",
+  images: "admin-product-images",
+};
+
 const randomId = () => {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return crypto.randomUUID();
@@ -348,8 +358,10 @@ export default function AdminProductsPage() {
         )}
         <form className="grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
           <div>
-            <label className="block text-sm font-medium text-slate-700">Başlık</label>
+            <label className="block text-sm font-medium text-slate-700" htmlFor={FIELD_IDS.title}>Başlık</label>
             <input
+              id={FIELD_IDS.title}
+              name="title"
               type="text"
               value={form.title}
               onChange={(event) => handleChange("title", event.target.value)}
@@ -359,8 +371,10 @@ export default function AdminProductsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">Slug</label>
+            <label className="block text-sm font-medium text-slate-700" htmlFor={FIELD_IDS.slug}>Slug</label>
             <input
+              id={FIELD_IDS.slug}
+              name="slug"
               type="text"
               value={form.slug ?? ""}
               onChange={(event) => handleChange("slug", event.target.value)}
@@ -369,8 +383,10 @@ export default function AdminProductsPage() {
             />
           </div>
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-slate-700">Açıklama</label>
+            <label className="block text-sm font-medium text-slate-700" htmlFor={FIELD_IDS.description}>Açıklama</label>
             <textarea
+              id={FIELD_IDS.description}
+              name="description"
               value={form.description ?? ""}
               onChange={(event) => handleChange("description", event.target.value)}
               className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-amber-500 focus:outline-none focus:ring-amber-500"
@@ -378,8 +394,10 @@ export default function AdminProductsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">Fiyat</label>
+            <label className="block text-sm font-medium text-slate-700" htmlFor={FIELD_IDS.price}>Fiyat</label>
             <input
+              id={FIELD_IDS.price}
+              name="price"
               type="number"
               step="0.01"
               value={form.price ?? ""}
@@ -388,8 +406,10 @@ export default function AdminProductsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">Stok</label>
+            <label className="block text-sm font-medium text-slate-700" htmlFor={FIELD_IDS.stock}>Stok</label>
             <input
+              id={FIELD_IDS.stock}
+              name="stock"
               type="number"
               value={form.stock ?? ""}
               onChange={(event) => handleChange("stock", event.target.value)}
@@ -397,8 +417,10 @@ export default function AdminProductsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">Kategori</label>
+            <label className="block text-sm font-medium text-slate-700" htmlFor={FIELD_IDS.category}>Kategori</label>
             <input
+              id={FIELD_IDS.category}
+              name="category"
               type="text"
               value={form.category ?? ""}
               onChange={(event) => handleChange("category", event.target.value)}
@@ -408,8 +430,10 @@ export default function AdminProductsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">Görseller</label>
+            <label className="block text-sm font-medium text-slate-700" htmlFor={FIELD_IDS.images}>Görseller</label>
             <input
+              id={FIELD_IDS.images}
+              name="images"
               type="text"
               value={form.images ?? ""}
               onChange={(event) => handleChange("images", event.target.value)}
@@ -655,3 +679,4 @@ export default function AdminProductsPage() {
     </div>
   );
 }
+

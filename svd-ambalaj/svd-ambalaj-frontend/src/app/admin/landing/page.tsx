@@ -43,6 +43,13 @@ export default function AdminLandingMediaPage() {
   const [uploadingVideoFile, setUploadingVideoFile] = useState(false);
   const router = useRouter();
 
+
+  const fieldIds = {
+    videoUrl: "landing-video-url",
+    posterUrl: "landing-video-poster",
+  };
+
+  const highlightFieldId = (id: string, field: "title" | "caption" | "image") => `landing-highlight-${field}-${id}`;
   const loadInitialData = async () => {
     setLoading(true);
     setError(null);
@@ -320,8 +327,10 @@ export default function AdminLandingMediaPage() {
         </header>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700">Video URL</label>
+            <label className="block text-sm font-medium text-slate-700" htmlFor={fieldIds.videoUrl}>Video URL</label>
             <input
+              id={fieldIds.videoUrl}
+              name="heroVideoUrl"
               type="text"
               value={videoField.src}
               onChange={(event) => setVideoField((prev) => ({ ...prev, src: event.target.value }))}
@@ -348,9 +357,11 @@ export default function AdminLandingMediaPage() {
             </label>
           </div>
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700">Poster Görseli</label>
+            <label className="block text-sm font-medium text-slate-700" htmlFor={fieldIds.posterUrl}>Poster Görseli</label>
             <div className="flex gap-2">
               <input
+                id={fieldIds.posterUrl}
+                name="heroVideoPoster"
                 type="text"
                 value={videoField.poster}
                 onChange={(event) => setVideoField((prev) => ({ ...prev, poster: event.target.value }))}
@@ -405,15 +416,19 @@ export default function AdminLandingMediaPage() {
           {highlights.map((item) => (
             <div key={item.id} className="grid gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-slate-700">Başlık</label>
+                <label className="block text-sm font-medium text-slate-700" htmlFor={highlightFieldId(item.id, "title")}>Başlık</label>
                 <input
+                  id={highlightFieldId(item.id, "title")}
+                  name={`highlight-${item.id}-title`}
                   type="text"
                   value={item.title}
                   onChange={(event) => handleHighlightChange(item.id, "title", event.target.value)}
                   className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-amber-500 focus:outline-none focus:ring-amber-500"
                 />
-                <label className="block text-sm font-medium text-slate-700">Açıklama</label>
+                <label className="block text-sm font-medium text-slate-700" htmlFor={highlightFieldId(item.id, "caption")}>Açıklama</label>
                 <textarea
+                  id={highlightFieldId(item.id, "caption")}
+                  name={`highlight-${item.id}-caption`}
                   value={item.caption}
                   onChange={(event) => handleHighlightChange(item.id, "caption", event.target.value)}
                   className="h-24 w-full rounded-md border border-slate-200 px-3 py-2 text-sm shadow-sm focus:border-amber-500 focus:outline-none focus:ring-amber-500"
@@ -429,9 +444,11 @@ export default function AdminLandingMediaPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-slate-700">Görsel URL</label>
+                <label className="block text-sm font-medium text-slate-700" htmlFor={highlightFieldId(item.id, "image")}>Görsel URL</label>
                 <div className="flex gap-2">
                   <input
+                    id={highlightFieldId(item.id, "image")}
+                    name={`highlight-${item.id}-image`}
                     type="text"
                     value={item.image}
                     onChange={(event) => handleHighlightChange(item.id, "image", event.target.value)}
