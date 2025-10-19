@@ -1,5 +1,5 @@
 [build]
-  command = "npm install --workspaces --include-workspace-root && npm --prefix svd-ambalaj/svd-ambalaj-frontend run build"
+  command = "npm install && npm --workspace svd-ambalaj/svd-ambalaj-frontend run build"
   publish = "svd-ambalaj/svd-ambalaj-frontend/.next"
 
 [build.environment]
