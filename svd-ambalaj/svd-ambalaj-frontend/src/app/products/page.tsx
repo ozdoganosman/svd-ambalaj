@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { resolveServerApiBase } from "@/lib/server-api";
+import { resolveServerApiBase, buildBlobProxyUrl } from "@/lib/server-api";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("tr-TR", {
@@ -65,13 +65,13 @@ async function getCategories(apiBase: string): Promise<Category[]> {
   }
 }
 
-const resolveMediaPath = (path: string | undefined | null, apiOrigin: string): string => {
+const resolveMediaPath = (path: string | undefined | null): string => {
   if (!path) {
     return "";
   }
 
-  if (path.startsWith("/uploads/") && apiOrigin) {
-    return `${apiOrigin}${path}`;
+  if (path.startsWith("/uploads/")) {
+    return buildBlobProxyUrl(path);
   }
 
   return path;
@@ -124,7 +124,7 @@ export default async function ProductsPage() {
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {products.map((product) => {
-                const image = resolveMediaPath(product.images?.[0] ?? product.image, apiBase);
+                const image = resolveMediaPath(product.images?.[0] ?? product.image);
 
                 return (
                   <article

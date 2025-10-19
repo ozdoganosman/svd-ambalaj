@@ -49,14 +49,16 @@ export const resolveServerApiBase = (): string => {
     }
   }
 
+  if (typeof window !== "undefined") {
+    const origin = window.location.origin;
+    return normalizeBase(origin);
+  }
+
   return normalizeBase(DEFAULT_API_BASE);
 };
 
 export const resolveServerApiUrl = (path: string): string => {
   const base = resolveServerApiBase();
-  if (!path) {
-    return base;
-  }
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return `${base}${normalizedPath}`;
 };
@@ -68,4 +70,18 @@ export const resolveServerApiOrigin = (): string => {
   } catch {
     return "";
   }
+};
+
+export const buildBlobProxyUrl = (key: string): string => {
+  const normalizedKey = key.startsWith("/") ? key.slice(1) : key;
+  const base = resolveServerApiBase();
+
+  if (!base) {
+    if (typeof window !== "undefined") {
+      return `${window.location.origin}/.netlify/functions/blob-proxy?key=${encodeURIComponent(normalizedKey)}`;
+    }
+    return `/.netlify/functions/blob-proxy?key=${encodeURIComponent(normalizedKey)}`;
+  }
+
+  return `${base}/.netlify/functions/blob-proxy?key=${encodeURIComponent(normalizedKey)}`;
 };

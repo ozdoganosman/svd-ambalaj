@@ -5,6 +5,7 @@ import { AddToCartButton } from "@/components/add-to-cart-button";
 import {
   resolveServerApiBase,
   resolveServerApiOrigin,
+  buildBlobProxyUrl,
 } from "@/lib/server-api";
 
 type BulkTier = {
@@ -91,7 +92,7 @@ export default async function Home() {
       return '';
     }
     if (path.startsWith('/uploads/')) {
-      return `${apiBase}${path}`;
+      return buildBlobProxyUrl(path);
     }
     return path;
   };

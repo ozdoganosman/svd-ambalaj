@@ -6,8 +6,8 @@
     "/images/landing/28.png"
   ],
   "heroVideo": {
-    "src": "https://svdambalaj.netlify.app/.netlify/blobs/site/uploads/1760815475590-315818037.mp4",
-    "poster": "https://svdambalaj.netlify.app/.netlify/blobs/site/uploads/1760815551377-282677799.png"
+    "src": "/uploads/1760815475590-315818037.mp4",
+    "poster": "/uploads/1760815551377-282677799.png"
   },
   "mediaHighlights": [
     {
@@ -18,7 +18,7 @@
     {
       "title": "asdasd",
       "caption": "asdasd",
-      "image": "https://svdambalaj.netlify.app/.netlify/blobs/site/uploads/1760813405578-422281035.jpeg"
+      "image": "/uploads/1760813405578-422281035.jpeg"
     }
   ]
 }

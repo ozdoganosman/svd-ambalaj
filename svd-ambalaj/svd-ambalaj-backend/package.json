@@ -13,6 +13,8 @@
   "description": "",
   "dependencies": {
     "@neondatabase/serverless": "^0.9.5",
+    "@netlify/blobs": "^7.1.0",
+    "@netlify/functions": "^2.4.1",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
