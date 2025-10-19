@@ -2,8 +2,8 @@
   "name": "svd-ambalaj",
   "private": true,
   "workspaces": [
-    "svd-ambalaj-backend",
-    "svd-ambalaj-frontend"
+    "svd-ambalaj/svd-ambalaj-backend",
+    "svd-ambalaj/svd-ambalaj-frontend"
   ],
   "dependencies": {
     "@netlify/blobs": "^7.1.0",
