@@ -85,14 +85,13 @@ async function getCategories(apiBase: string): Promise<Category[]> {
 
 export default async function Home() {
   const apiBase = resolveServerApiBase();
-  const apiOrigin = resolveServerApiOrigin();
 
   const resolveMediaPath = (path: string | undefined | null): string => {
     if (!path) {
       return '';
     }
-    if (path.startsWith('/uploads/') && apiOrigin) {
-      return `${apiOrigin}${path}`;
+    if (path.startsWith('/uploads/')) {
+      return `${apiBase}${path}`;
     }
     return path;
   };

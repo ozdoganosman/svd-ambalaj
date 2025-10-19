@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { resolveServerApiBase, resolveServerApiOrigin } from "@/lib/server-api";
+import { resolveServerApiBase } from "@/lib/server-api";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("tr-TR", {
@@ -79,7 +79,6 @@ const resolveMediaPath = (path: string | undefined | null, apiOrigin: string): s
 
 export default async function ProductsPage() {
   const apiBase = resolveServerApiBase();
-  const apiOrigin = resolveServerApiOrigin();
 
   const [products, categories] = await Promise.all([
     getProducts(apiBase),
@@ -125,7 +124,7 @@ export default async function ProductsPage() {
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {products.map((product) => {
-                const image = resolveMediaPath(product.images?.[0] ?? product.image, apiOrigin);
+                const image = resolveMediaPath(product.images?.[0] ?? product.image, apiBase);
 
                 return (
                   <article
