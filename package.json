@@ -1,0 +1,12 @@
+{
+  "name": "svd-ambalaj",
+  "private": true,
+  "workspaces": [
+    "svd-ambalaj-backend",
+    "svd-ambalaj-frontend"
+  ],
+  "dependencies": {
+    "@netlify/blobs": "^7.1.0",
+    "@netlify/functions": "^2.4.1"
+  }
+}
