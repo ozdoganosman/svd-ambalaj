@@ -1,7 +1,6 @@
 [build]
-  base = "svd-ambalaj/svd-ambalaj-frontend"
-  command = "npm run build"
-  publish = ".next"
+  command = "npm run build --workspace svd-ambalaj-frontend"
+  publish = "svd-ambalaj/svd-ambalaj-frontend/.next"
 
 [build.environment]
   NEXT_PUBLIC_API_URL = "/.netlify/functions/api"
